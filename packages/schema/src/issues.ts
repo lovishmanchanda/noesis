@@ -23,6 +23,10 @@ export const ISSUE_CODES = [
   'E_SPLIT_RATIOS',
   'E_SPLIT_STRATEGY',
   'E_NON_NUMERIC_FEATURE',
+  'E_PARAM_UNKNOWN',
+  'E_PARAM_REQUIRED',
+  'E_PARAM_VALUE',
+  'E_PARAM_COLUMN',
 ] as const;
 
 export type IssueCode = (typeof ISSUE_CODES)[number];
