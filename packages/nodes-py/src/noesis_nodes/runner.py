@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 import pandas as pd
 
-from . import steps_data, steps_prepare
+from . import steps_data, steps_model, steps_prepare
 from .context import Ctx, Data
 from .registry import resolve_params
 
@@ -23,6 +23,7 @@ STEPS: dict[str, Callable[..., Data]] = {
     "select_features": steps_prepare.select_features,
     "reduce_dimensions": steps_prepare.reduce_dimensions,
     "derive_feature": steps_prepare.derive_feature,
+    **steps_model.STEPS,
 }
 
 
@@ -70,6 +71,7 @@ def run_pipeline(
     nodes = {n["id"]: n for n in pipeline["nodes"]}
     order = topological_order(pipeline["nodes"])
     outputs: dict[str, Data] = {}
+    lineage: dict[str, str | None] = {}  # the latest model upstream of each step
 
     for node_id in order:
         ctx.check_cancel()
@@ -82,9 +84,11 @@ def run_pipeline(
             frame = source if isinstance(source, pd.DataFrame) else steps_data.load_csv(source, params)
             outputs[node_id] = Data.single(frame)
         elif node["type"] in STEPS:
-            incoming = outputs[node["inputs"][0]]
-            outputs[node_id] = STEPS[node["type"]](incoming, params, ctx, node_id)
+            upstream = node["inputs"][0]
+            ctx.current_model = node_id if node["type"] == "model" else lineage.get(upstream)
+            outputs[node_id] = STEPS[node["type"]](outputs[upstream], params, ctx, node_id)
         else:
             raise NotImplementedError(f"The step type '{node['type']}' is not implemented yet")
+        lineage[node_id] = node_id if node["type"] == "model" else (lineage.get(node["inputs"][0]) if node.get("inputs") else None)
         ctx.emit("node_finished", {"node": node_id})
     return RunResult(outputs, ctx, order)

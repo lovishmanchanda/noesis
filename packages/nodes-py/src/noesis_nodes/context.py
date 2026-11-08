@@ -50,6 +50,11 @@ class Ctx:
     reference: str | None = None
     excluded: frozenset[str] = frozenset()
     fitted: dict[str, Any] = field(default_factory=dict)
+    models: dict[str, Any] = field(default_factory=dict)
+    results: dict[str, dict] = field(default_factory=dict)
+    current_model: str | None = None
+    test_used: set[str] = field(default_factory=set)
+    n_jobs: int = 1
     emit: Callable[[str, dict], None] = lambda event, data: None
     cancelled: Callable[[], bool] = lambda: False
 

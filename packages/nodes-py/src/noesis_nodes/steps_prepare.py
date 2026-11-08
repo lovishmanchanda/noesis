@@ -249,7 +249,8 @@ class Reducer:
 def _learned(data: Data, step: str, node_id: str, ctx: Ctx, transformer: Any) -> Data:
     transformer.fit(data.fit_frame(step))
     ctx.fitted[node_id] = transformer
-    return data.map(lambda part, frame: transformer.transform(frame, part))
+    # empty parts (for example validation and test when the split is "none") pass through unchanged
+    return data.map(lambda part, frame: transformer.transform(frame, part) if len(frame) else frame)
 
 
 def impute(data: Data, p: dict[str, Any], ctx: Ctx, node_id: str) -> Data:

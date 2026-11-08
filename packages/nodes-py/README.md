@@ -10,13 +10,16 @@ Plain pandas and scikit-learn functions, one per pipeline step. The in-browser e
 | `context.py` | `Data` (frames before and after the split), `Ctx` (task, roles, seed, fitted transformers, event and cancel hooks) |
 | `steps_data.py` | load, drop columns, drop duplicates, filter rows, split (random, stratified, group, time, none) |
 | `steps_prepare.py` | impute, outliers, encode, scale, derive a feature, select features, reduce dimensions |
+| `steps_model.py` | the models (15 algorithms), validation (holdout and four cross-validation methods), the final test (once per model), stability check for clustering, and a placeholder for export |
 | `runner.py` | Runs a pipeline in dependency order and reports events |
 
 Steps that learn from data fit on the training rows only and raise `LeakageError` if the split has not happened. The fitted transformers are kept in `ctx.fitted` so they can be applied to new rows later.
 
 ## Not yet implemented
 
-Models, validation, the final test, stability check and export. They are added in the next stage of Phase 0 and in Phases 3 and 4 (see `docs/planning/roadmap.md`).
+- `tune` (search over settings), added in Phase 3.
+- Building export files (the `export_model` step only records its settings), added in Phase 4.
+- Live training events for each algorithm (per-epoch, per-round and per-tree events from the design in `docs/design/training-events.md`), added in Phase 3.
 
 ## Running the tests
 

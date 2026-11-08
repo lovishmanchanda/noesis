@@ -44,8 +44,8 @@ def test_load_csv_reads_from_a_file_object_with_its_settings():
 
 
 def test_steps_without_an_implementation_say_so(housing):
-    with pytest.raises(NotImplementedError, match="model"):
-        run_pipeline(make_pipeline([("split", {}), ("model", {"algorithm": "ridge"})]), housing)
+    with pytest.raises(NotImplementedError, match="tune"):
+        run_pipeline(make_pipeline([("split", {}), ("tune", {})]), housing)
 
 
 def test_fitted_transformers_can_be_reused_on_new_rows(housing):
