@@ -1,0 +1,82 @@
+import { useState, type ReactNode } from 'react';
+import { screenDef } from '../screens';
+import { useUi } from '../state/ui';
+import { Stepper } from './Stepper';
+import { TopBar } from './TopBar';
+
+export interface ShellProps {
+  projectName: string;
+  saveStatus: string;
+  engineLabel: string;
+  /** Text for the banner under the top bar, naming the next step. */
+  nextStep: string;
+  /** Why the Next button is not available yet, if it is not. */
+  blocked?: string | undefined;
+  onNext: () => void;
+  children: ReactNode;
+}
+
+export function Shell({
+  projectName,
+  saveStatus,
+  engineLabel,
+  nextStep,
+  blocked,
+  onNext,
+  children,
+}: ShellProps) {
+  const { screen, back } = useUi();
+  const [panelOpen, setPanelOpen] = useState(false);
+  const def = screenDef(screen);
+  return (
+    <div className="shell">
+      <TopBar projectName={projectName} saveStatus={saveStatus} engineLabel={engineLabel} />
+      <Stepper />
+      <main className="main" id="main">
+        <div className="banner" role="note">
+          {nextStep}
+        </div>
+        <div className="main-head">
+          <h1>{def.title}</h1>
+          <button
+            type="button"
+            className="panel-toggle"
+            onClick={() => setPanelOpen((o) => !o)}
+            aria-expanded={panelOpen}
+          >
+            Suggestions
+          </button>
+        </div>
+        <p className="purpose">{def.purpose}</p>
+        <div className="screen">{children}</div>
+        <div className="bottom-bar">
+          <button type="button" onClick={back} disabled={screen === 'project'}>
+            Back
+          </button>
+          <div className="bottom-right">
+            {blocked && (
+              <span className="blocked-reason" role="status">
+                {blocked}
+              </span>
+            )}
+            <button
+              type="button"
+              className="primary"
+              onClick={onNext}
+              aria-disabled={Boolean(blocked)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </main>
+      <aside className={`suggestions ${panelOpen ? 'open' : ''}`} aria-label="Suggestions">
+        <div className="stepper-title">Suggestions</div>
+        <p className="muted">
+          Nothing to suggest yet. Suggestions appear here as you work, each with the numbers behind
+          it.
+        </p>
+      </aside>
+    </div>
+  );
+}
