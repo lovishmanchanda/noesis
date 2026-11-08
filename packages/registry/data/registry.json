@@ -381,7 +381,7 @@
           "when": { "param": "method", "equals": "variance" },
           "level": "advanced",
           "label": "Smallest variance",
-          "help": "Columns that vary less than this are dropped."
+          "help": "Columns that vary this little or less are dropped. The default of 0 removes constant columns."
         },
         "correlationThreshold": {
           "type": "float",
