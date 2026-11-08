@@ -1,0 +1,46 @@
+{
+  "experiment": "e1b",
+  "port": "8083",
+  "seconds": 46,
+  "result": {
+    "imports": [
+      {
+        "module": "scipy",
+        "s": 0.062
+      },
+      {
+        "module": "sklearn",
+        "s": 10.895
+      },
+      {
+        "module": "sklearn.linear_model",
+        "s": 1.428
+      },
+      {
+        "module": "sklearn.ensemble",
+        "s": 0.986
+      },
+      {
+        "module": "sklearn.neighbors",
+        "s": 0
+      },
+      {
+        "module": "sklearn.cluster",
+        "s": 0.328
+      },
+      {
+        "module": "sklearn.neural_network",
+        "s": 0.06
+      },
+      {
+        "module": "xgboost",
+        "s": 0.375
+      },
+      {
+        "module": "pyarrow",
+        "s": 0
+      }
+    ],
+    "total_s": 14.13
+  }
+}

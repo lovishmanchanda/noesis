@@ -1,0 +1,74 @@
+{
+  "experiment": "e1",
+  "port": "8082",
+  "seconds": 10,
+  "result": {
+    "cacheMode": "no-store (cold)",
+    "runs": [
+      {
+        "label": "load-1",
+        "total_ms": 6299,
+        "stages": [
+          {
+            "stage": "core",
+            "ms": 3954,
+            "bytes": 13513276
+          },
+          {
+            "stage": "numpy+pandas",
+            "ms": 391,
+            "bytes": 7889748
+          },
+          {
+            "stage": "scikit-learn",
+            "ms": 1031,
+            "bytes": 18677909
+          },
+          {
+            "stage": "xgboost",
+            "ms": 55,
+            "bytes": 1583918
+          },
+          {
+            "stage": "pyarrow",
+            "ms": 848,
+            "bytes": 10020765
+          }
+        ],
+        "pyodide": "314.0.7"
+      },
+      {
+        "label": "load-2",
+        "total_ms": 3479,
+        "stages": [
+          {
+            "stage": "core",
+            "ms": 988,
+            "bytes": 13513276
+          },
+          {
+            "stage": "numpy+pandas",
+            "ms": 373,
+            "bytes": 7889748
+          },
+          {
+            "stage": "scikit-learn",
+            "ms": 1000,
+            "bytes": 18677909
+          },
+          {
+            "stage": "xgboost",
+            "ms": 69,
+            "bytes": 1583918
+          },
+          {
+            "stage": "pyarrow",
+            "ms": 1020,
+            "bytes": 10020765
+          }
+        ],
+        "pyodide": "314.0.7"
+      }
+    ]
+  }
+}

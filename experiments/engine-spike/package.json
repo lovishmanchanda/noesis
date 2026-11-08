@@ -1,0 +1,15 @@
+{
+  "name": "@noesis/engine-spike",
+  "version": "0.0.0",
+  "description": "Throwaway experiment that tested the in-browser engine choice",
+  "scripts": {
+    "serve": "node server.mjs",
+    "fetch:pyodide": "node scripts/fetch_pyodide.mjs"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "pyodide": "^314.0.7"
+  },
+  "private": true
+}

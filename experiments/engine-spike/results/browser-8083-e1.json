@@ -1,0 +1,109 @@
+{
+  "experiment": "e1",
+  "port": "8083",
+  "seconds": 22,
+  "result": {
+    "cacheMode": "cacheable",
+    "runs": [
+      {
+        "label": "load-1",
+        "total_ms": 7470,
+        "stages": [
+          {
+            "stage": "core",
+            "ms": 1001,
+            "bytes": 13513276
+          },
+          {
+            "stage": "numpy+pandas",
+            "ms": 371,
+            "bytes": 7889748
+          },
+          {
+            "stage": "scikit-learn",
+            "ms": 1015,
+            "bytes": 18677909
+          },
+          {
+            "stage": "xgboost",
+            "ms": 60,
+            "bytes": 1583918
+          },
+          {
+            "stage": "pyarrow",
+            "ms": 856,
+            "bytes": 10020765
+          }
+        ],
+        "pyodide": "314.0.7",
+        "python_imports_s": 2.376
+      },
+      {
+        "label": "load-2",
+        "total_ms": 7324,
+        "stages": [
+          {
+            "stage": "core",
+            "ms": 984,
+            "bytes": 13513276
+          },
+          {
+            "stage": "numpy+pandas",
+            "ms": 367,
+            "bytes": 7889748
+          },
+          {
+            "stage": "scikit-learn",
+            "ms": 983,
+            "bytes": 18677909
+          },
+          {
+            "stage": "xgboost",
+            "ms": 56,
+            "bytes": 1583918
+          },
+          {
+            "stage": "pyarrow",
+            "ms": 823,
+            "bytes": 10020765
+          }
+        ],
+        "pyodide": "314.0.7",
+        "python_imports_s": 2.348
+      },
+      {
+        "label": "load-3",
+        "total_ms": 7305,
+        "stages": [
+          {
+            "stage": "core",
+            "ms": 975,
+            "bytes": 13513276
+          },
+          {
+            "stage": "numpy+pandas",
+            "ms": 369,
+            "bytes": 7889748
+          },
+          {
+            "stage": "scikit-learn",
+            "ms": 985,
+            "bytes": 18677909
+          },
+          {
+            "stage": "xgboost",
+            "ms": 58,
+            "bytes": 1583918
+          },
+          {
+            "stage": "pyarrow",
+            "ms": 807,
+            "bytes": 10020765
+          }
+        ],
+        "pyodide": "314.0.7",
+        "python_imports_s": 2.363
+      }
+    ]
+  }
+}

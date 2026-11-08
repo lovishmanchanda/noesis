@@ -1,0 +1,50 @@
+{
+  "experiment": "e0",
+  "port": "8082",
+  "seconds": 0,
+  "result": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.167 Safari/537.36",
+    "hardwareConcurrency": 8,
+    "deviceMemoryGB": 8,
+    "crossOriginIsolated": true,
+    "sharedArrayBuffer": true,
+    "port": "8082",
+    "webgpu": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "",
+      "description": ""
+    },
+    "webgpuFeatures": [
+      "depth32float-stencil8",
+      "rg11b10ufloat-renderable",
+      "texture-formats-tier1",
+      "bgra8unorm-storage",
+      "texture-compression-bc",
+      "dual-source-blending",
+      "core-features-and-limits",
+      "float32-filterable",
+      "indirect-first-instance",
+      "texture-compression-astc-sliced-3d",
+      "float32-blendable",
+      "subgroup-size-control",
+      "texture-compression-astc",
+      "texture-compression-etc2",
+      "depth-clip-control",
+      "texture-compression-bc-sliced-3d",
+      "clip-distances",
+      "shader-f16",
+      "timestamp-query",
+      "texture-formats-tier2",
+      "primitive-index",
+      "texture-component-swizzle",
+      "subgroups"
+    ],
+    "storageEstimate": {
+      "quota": 1555876472,
+      "usage": 0,
+      "usageDetails": {}
+    },
+    "storagePersisted": false
+  }
+}

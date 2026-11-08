@@ -1,0 +1,17 @@
+{
+  "experiment": "e9",
+  "port": "8080",
+  "seconds": 8,
+  "result": {
+    "profile_md5_4dp": "5249abca4f57307bf7838101c4402b9d",
+    "rows": 10000,
+    "duplicates": 0,
+    "max_abs_corr": 0.73874,
+    "num_0_mean": 0.016178,
+    "scores": {
+      "logistic": 0.83,
+      "knn": 0.7265,
+      "random_forest": 0.811
+    }
+  }
+}

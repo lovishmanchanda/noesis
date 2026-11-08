@@ -1,0 +1,60 @@
+{
+  "experiment": "e7",
+  "port": "8083",
+  "seconds": 38,
+  "result": {
+    "load": {
+      "rows": 100000,
+      "features": 67,
+      "s": 2.585
+    },
+    "arrow": {
+      "from_pandas_s": 0.149,
+      "feather_uncompressed": {
+        "bytes": 42846082,
+        "write_s": 0.208,
+        "read_s": 0.942,
+        "rows": 100000
+      },
+      "feather_lz4": {
+        "bytes": 31371338,
+        "write_s": 0.459,
+        "read_s": 0.487,
+        "rows": 100000
+      },
+      "feather_zstd": {
+        "bytes": 28909954,
+        "write_s": 0.69,
+        "read_s": 0.691,
+        "rows": 100000
+      },
+      "parquet_snappy": {
+        "bytes": 31518167,
+        "write_s": 1.724,
+        "read_s": 1.14,
+        "rows": 100000
+      },
+      "parquet_zstd": {
+        "bytes": 29983959,
+        "write_s": 1.673,
+        "read_s": 0.767,
+        "rows": 100000
+      }
+    },
+    "storage": {
+      "bytes": 42846082,
+      "cache_put_ms": 164,
+      "cache_get_ms": 19,
+      "cache_ok": true,
+      "idb_put_ms": 131,
+      "idb_get_ms": 43,
+      "idb_ok": true
+    },
+    "persistGranted": false,
+    "estimate": {
+      "quota": 1555876472,
+      "usage": 0,
+      "usageDetails": {}
+    }
+  }
+}

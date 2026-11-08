@@ -1,0 +1,10 @@
+{
+  "experiment": "e1c",
+  "port": "8083",
+  "seconds": 41,
+  "result": {
+    "init_ms": 17932,
+    "imports_s": 23.47,
+    "snapshot_failed": "Error: Unexpected hiwire entry at index 6"
+  }
+}

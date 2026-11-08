@@ -1,0 +1,191 @@
+{
+  "label": "mac-m2",
+  "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "cpu_count": 8,
+  "versions": {
+    "python": "3.14.10",
+    "numpy": "2.4.6",
+    "pandas": "3.0.2",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.18.0",
+    "xgboost": "2.1.4",
+    "pyarrow": "22.0.0"
+  },
+  "e2": [
+    {
+      "file": "d10k_20",
+      "read_s": 0.025,
+      "profile_s": 0.043,
+      "frame_mb": 1.9
+    },
+    {
+      "file": "d100k_20",
+      "read_s": 0.181,
+      "profile_s": 0.201,
+      "frame_mb": 18.7
+    },
+    {
+      "file": "d100k_50",
+      "read_s": 0.459,
+      "profile_s": 0.623,
+      "frame_mb": 42.7
+    },
+    {
+      "file": "d500k_50",
+      "read_s": 1.547,
+      "profile_s": 1.949,
+      "frame_mb": 213.4
+    },
+    {
+      "file": "d1000k_50",
+      "read_s": 2.887,
+      "profile_s": 3.37,
+      "frame_mb": 426.9
+    }
+  ],
+  "e3": {
+    "single_thread": [
+      {
+        "model": "logistic",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.294,
+        "predict_s": 0.003,
+        "score": 0.83735
+      },
+      {
+        "model": "ridge",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.022,
+        "predict_s": 0.002,
+        "score": 0.832427
+      },
+      {
+        "model": "knn",
+        "n_jobs": 1,
+        "rows_train": 20000,
+        "features": 67,
+        "fit_s": 0.001,
+        "predict_s": 0.081,
+        "score": 0.6305
+      },
+      {
+        "model": "kmeans",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.4,
+        "predict_s": 0.001,
+        "score": 14068480.0
+      },
+      {
+        "model": "random_forest",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 23.678,
+        "predict_s": 0.13,
+        "score": 0.8226
+      },
+      {
+        "model": "xgboost",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 2.855,
+        "predict_s": 0.049,
+        "score": 0.8267
+      },
+      {
+        "model": "mlp",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 2.418,
+        "predict_s": 0.003,
+        "score": 0.8277
+      }
+    ],
+    "all_threads": [
+      {
+        "model": "logistic",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.219,
+        "predict_s": 0.004,
+        "score": 0.83735
+      },
+      {
+        "model": "ridge",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.009,
+        "predict_s": 0.001,
+        "score": 0.832427
+      },
+      {
+        "model": "knn",
+        "n_jobs": -1,
+        "rows_train": 20000,
+        "features": 67,
+        "fit_s": 0.001,
+        "predict_s": 0.039,
+        "score": 0.6305
+      },
+      {
+        "model": "kmeans",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.262,
+        "predict_s": 0.001,
+        "score": 14068541.0
+      },
+      {
+        "model": "random_forest",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 4.459,
+        "predict_s": 0.038,
+        "score": 0.8226
+      },
+      {
+        "model": "xgboost",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 1.167,
+        "predict_s": 0.012,
+        "score": 0.8267
+      },
+      {
+        "model": "mlp",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 2.547,
+        "predict_s": 0.002,
+        "score": 0.8277
+      }
+    ]
+  },
+  "e9": {
+    "profile_md5_4dp": "5249abca4f57307bf7838101c4402b9d",
+    "rows": 10000,
+    "duplicates": 0,
+    "max_abs_corr": 0.73874,
+    "num_0_mean": 0.016178,
+    "scores": {
+      "logistic": 0.83,
+      "knn": 0.7265,
+      "random_forest": 0.8105
+    }
+  }
+}
