@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import markUrl from '../../../../brand/noesis-mark.png';
 import { LoadingCard } from '../components/Loading';
+import { Notice } from '../components/ui';
 import { useEngine } from '../state/engine';
+import type { SavedProject } from '../state/persist';
 
 export interface SampleInfo {
   id: string;
@@ -14,25 +16,34 @@ export interface SampleInfo {
   reference?: string;
 }
 
-export function Startup({
-  onNew,
-  onSample,
-}: {
+export interface StartupProps {
+  samples: SampleInfo[];
+  saved: SavedProject | null;
+  message: string | null;
   onNew: () => void;
   onSample: (sample: SampleInfo) => void;
-}) {
+  onContinue: () => void;
+  onDiscard: () => void;
+  onOpenFile: (file: File) => void;
+}
+
+export function Startup({
+  samples,
+  saved,
+  message,
+  onNew,
+  onSample,
+  onContinue,
+  onDiscard,
+  onOpenFile,
+}: StartupProps) {
   const { phase, progress, error, start } = useEngine();
-  const [samples, setSamples] = useState<SampleInfo[]>([]);
+  const input = useRef<HTMLInputElement>(null);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
   useEffect(() => {
     void start();
   }, [start]);
-  useEffect(() => {
-    fetch('/samples/samples.json')
-      .then((r) => (r.ok ? (r.json() as Promise<SampleInfo[]>) : []))
-      .then(setSamples)
-      .catch(() => setSamples([]));
-  }, []);
 
   const ready = phase === 'ready';
   return (
@@ -47,11 +58,67 @@ export function Startup({
           this computer.
         </p>
         <LoadingCard progress={progress} error={error} onRetry={() => void start()} />
+        {message && <Notice kind="error">{message}</Notice>}
         <section className="startup-actions">
+          {saved && (
+            <div className="card continue">
+              <div>
+                <strong>{saved.project.name}</strong>
+                <span className="muted block small">
+                  Saved on this device{' '}
+                  {new Date(saved.savedAt).toLocaleString('en-GB', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  })}
+                </span>
+              </div>
+              <div className="row">
+                <button type="button" className="primary" disabled={!ready} onClick={onContinue}>
+                  Continue
+                </button>
+                {confirmDiscard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmDiscard(false);
+                      onDiscard();
+                    }}
+                  >
+                    Yes, discard it
+                  </button>
+                ) : (
+                  <button type="button" onClick={() => setConfirmDiscard(true)}>
+                    Discard
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           <h2>Start</h2>
-          <button type="button" className="primary" disabled={!ready} onClick={onNew}>
-            New project
-          </button>
+          <div className="row">
+            <button
+              type="button"
+              className={saved ? '' : 'primary'}
+              disabled={!ready}
+              onClick={onNew}
+            >
+              New project
+            </button>
+            <button type="button" onClick={() => input.current?.click()}>
+              Open a project file
+            </button>
+            <input
+              ref={input}
+              type="file"
+              accept=".json,application/json"
+              hidden
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onOpenFile(f);
+                e.target.value = '';
+              }}
+            />
+          </div>
           <h2 className="mt">Or try a sample dataset</h2>
           <div className="sample-grid">
             {samples.map((s) => (

@@ -8,6 +8,7 @@ export interface ShellProps {
   projectName: string;
   saveStatus: string;
   engineLabel: string;
+  onSaveFile: () => void;
   /** Text for the banner under the top bar, naming the next step. */
   nextStep: string;
   /** Why the Next button is not available yet, if it is not. */
@@ -23,6 +24,7 @@ export function Shell({
   projectName,
   saveStatus,
   engineLabel,
+  onSaveFile,
   nextStep,
   blocked,
   error,
@@ -35,7 +37,12 @@ export function Shell({
   const def = screenDef(screen);
   return (
     <div className="shell">
-      <TopBar projectName={projectName} saveStatus={saveStatus} engineLabel={engineLabel} />
+      <TopBar
+        projectName={projectName}
+        saveStatus={saveStatus}
+        engineLabel={engineLabel}
+        onSaveFile={onSaveFile}
+      />
       <Stepper />
       <main className="main" id="main">
         <div className="banner" role="note">

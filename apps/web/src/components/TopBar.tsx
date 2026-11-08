@@ -5,10 +5,12 @@ export function TopBar({
   projectName,
   saveStatus,
   engineLabel,
+  onSaveFile,
 }: {
   projectName: string;
   saveStatus: string;
   engineLabel: string;
+  onSaveFile: () => void;
 }) {
   const { mode, setMode, theme, setTheme } = useUi();
   const modes: Mode[] = ['guided', 'expert'];
@@ -43,6 +45,13 @@ export function TopBar({
             <option value="dark">Dark</option>
           </select>
         </label>
+        <button
+          type="button"
+          onClick={onSaveFile}
+          title="Download the choices made so far as a file (the data is not included)"
+        >
+          Save project file
+        </button>
         <span className="status-text" role="status">
           {saveStatus}
         </span>

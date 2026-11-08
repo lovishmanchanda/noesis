@@ -46,6 +46,16 @@ export async function openFile(
   invalidateSplit();
 }
 
+/** The open file's bytes, for saving the project on this device. */
+export function getOpenFile(): {
+  name: string;
+  bytes: ArrayBuffer;
+  source: DatasetInfo['source'];
+  sampleId?: string;
+} | null {
+  return openFileBytes;
+}
+
 export async function reloadWithSettings(settings: LoadSettings): Promise<void> {
   if (!openFileBytes) return;
   await openFile(openFileBytes, settings);
