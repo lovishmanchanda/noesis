@@ -72,6 +72,9 @@ while (stack.length) {
 const spike = path.join(root, 'experiments/engine-spike');
 for (const p of ['node_modules', 'public', 'data/out', '.env']) add(path.join(spike, p));
 
+// Files the web app generates (recreated by `pnpm dev` or `pnpm build:web`)
+for (const p of ['pyodide', 'engine', 'samples']) add(path.join(root, 'apps/web/public', p));
+
 // Scratch files in .local (everything except the tools, the environment and the package cache)
 const local = path.join(root, '.local');
 if (fs.existsSync(local)) {
