@@ -21,6 +21,12 @@ Steps that learn from data fit on the training rows only and raise `LeakageError
 - Building export files (the `export_model` step only records its settings), added in Phase 4.
 - Live training events for each algorithm (per-epoch, per-round and per-tree events from the design in `docs/design/training-events.md`), added in Phase 3.
 
+## Contract test
+
+The claim that the browser engine and the companion run the same code is tested, not assumed. `pnpm contract` (or `NOESIS_PYTHON=<python> node packages/nodes-py/contract/run.mjs`) runs the pipelines in `fixtures/contract/` natively and inside Pyodide and compares the prepared data (must be identical) and every score (within the case's tolerance).
+
+On the seeded data, ridge, logistic regression, KNN, gradient boosting and K-means give identical scores in both runtimes. The random forest differs by about 2% (relative), as the engine experiment also found, so its tolerance is wider. Regenerate the cases with `python fixtures/contract/generate.py`.
+
 ## Running the tests
 
 ```bash

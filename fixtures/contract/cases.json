@@ -1,0 +1,38 @@
+[
+  {
+    "name": "regression-ridge",
+    "pipeline": "pipelines/regression-ridge.json",
+    "data": "../data/housing_small.csv",
+    "tolerance": 1e-06
+  },
+  {
+    "name": "classification-logistic",
+    "pipeline": "pipelines/classification-logistic.json",
+    "data": "../data/housing_small.csv",
+    "tolerance": 0.0001
+  },
+  {
+    "name": "classification-knn",
+    "pipeline": "pipelines/classification-knn.json",
+    "data": "../data/housing_small.csv",
+    "tolerance": 1e-06
+  },
+  {
+    "name": "regression-random-forest",
+    "pipeline": "pipelines/regression-random-forest.json",
+    "data": "../data/housing_small.csv",
+    "tolerance": 0.03
+  },
+  {
+    "name": "classification-xgboost",
+    "pipeline": "pipelines/classification-xgboost.json",
+    "data": "../data/housing_small.csv",
+    "tolerance": 0.03
+  },
+  {
+    "name": "clustering-kmeans",
+    "pipeline": "pipelines/clustering-kmeans.json",
+    "data": "../data/customers_small.csv",
+    "tolerance": 0.05
+  }
+]
