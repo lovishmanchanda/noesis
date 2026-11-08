@@ -29,6 +29,15 @@ mkdir -p .local/tools && npm install --prefix .local/tools pnpm
 
 The pnpm store is `.pnpm-store` (set in `pnpm-workspace.yaml`). Both folders are git-ignored.
 
+## Run the app
+
+```bash
+pnpm dev          # prepares the engine files, then starts the web app (http://localhost:5173)
+pnpm build:web    # the same preparation, then a production build in apps/web/dist
+```
+
+`pnpm dev` downloads the Python packages the browser engine needs (about 40 MB, once) into `apps/web/public/pyodide`, which is git-ignored. The page must be served with cross-origin isolation headers; the dev server and `apps/web/public/_headers` do this.
+
 ## Before you commit
 
 ```bash

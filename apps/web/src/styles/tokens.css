@@ -1,0 +1,72 @@
+/* Design tokens. Every colour in the app comes from here, so light and dark mode stay in step.
+   The accent is the violet of the NOESIS mark; the shades below are chosen for text contrast
+   and are checked by test/tokens.test.ts. */
+:root {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  --surface-0: #f6f6f8;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: #ffffff;
+  --text-primary: #1a1a1f;
+  --text-secondary: #55555f;
+  --text-muted: #6b6b75;
+  --border: #e3e3e8;
+  --border-strong: #868692;
+
+  --accent-fill: #5b4fd6;
+  --accent-on: #ffffff;
+  --accent-text: #5b4fd6;
+  --accent-soft: #eeebfd;
+  --accent-soft-text: #3d33a8;
+  --accent-mark: #9a8df6;
+
+  --success-text: #176b37;
+  --success-soft: #e7f6ec;
+  --warning-text: #8a5300;
+  --warning-soft: #fff3dc;
+  --danger-text: #b3261e;
+  --danger-soft: #fdecea;
+
+  --part-train: var(--accent-text);
+  --part-validation: var(--success-text);
+  --part-test: var(--warning-text);
+
+  --focus-ring: 0 0 0 2px var(--surface-1), 0 0 0 4px var(--accent-fill);
+}
+
+:root[data-theme='dark'] {
+  --surface-0: #101013;
+  --surface-1: #17171b;
+  --surface-2: #1e1e23;
+  --surface-3: #26262c;
+  --text-primary: #ececf1;
+  --text-secondary: #b4b4bf;
+  --text-muted: #9393a0;
+  --border: #2d2d34;
+  --border-strong: #6e6e7a;
+
+  --accent-fill: #8e82f5;
+  --accent-on: #14121f;
+  --accent-text: #b2a9fa;
+  --accent-soft: #26224a;
+  --accent-soft-text: #cfc9fd;
+  --accent-mark: #9a8df6;
+
+  --success-text: #6fd39a;
+  --success-soft: #12281c;
+  --warning-text: #f0b35a;
+  --warning-soft: #2e2210;
+  --danger-text: #ff8a80;
+  --danger-soft: #35171a;
+}

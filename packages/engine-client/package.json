@@ -2,6 +2,10 @@
   "name": "@noesis/engine-client",
   "version": "0.0.0",
   "private": true,
-  "description": "The Engine interface implemented by the browser worker and the companion",
-  "license": "MIT"
+  "description": "The Engine interface implemented by the browser worker and the local companion",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
 }

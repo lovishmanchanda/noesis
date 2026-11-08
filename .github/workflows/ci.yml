@@ -56,3 +56,17 @@ jobs:
         run: node packages/nodes-py/contract/run.mjs
         env:
           NOESIS_PYTHON: python
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm@12.18.0
+          pnpm install --frozen-lockfile
+      - name: Build the web app, including the engine files
+        run: pnpm build:web

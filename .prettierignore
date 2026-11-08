@@ -14,3 +14,7 @@ spike
 fixtures/contract/pipelines
 fixtures/contract/cases.json
 fixtures/data
+apps/web/public/pyodide
+apps/web/public/engine
+apps/web/public/samples
+apps/web/dist

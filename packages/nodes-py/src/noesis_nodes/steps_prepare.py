@@ -8,13 +8,10 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.decomposition import PCA
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.feature_selection import SelectKBest, f_classif, f_regression
-from sklearn.impute import KNNImputer
-from sklearn.preprocessing import MaxAbsScaler, MinMaxScaler, RobustScaler, StandardScaler
-
 from .context import Ctx, Data
+
+# scikit-learn is imported inside the steps that use it, so that opening a file and running the
+# early steps does not have to load it.
 
 OTHER = "__other__"
 
@@ -37,7 +34,7 @@ class Imputer:
     def __init__(self, p: dict[str, Any]):
         self.p = p
         self.fill: dict[str, Any] = {}
-        self.knn: KNNImputer | None = None
+        self.knn: Any = None
 
     def fit(self, train: pd.DataFrame) -> "Imputer":
         strategy, columns = self.p["strategy"], self.p["columns"]
@@ -46,6 +43,8 @@ class Imputer:
             if bad:
                 raise ValueError(f"impute: '{strategy}' needs numbers, but {bad} are not numeric")
         if strategy == "knn":
+            from sklearn.impute import KNNImputer
+
             self.knn = KNNImputer(n_neighbors=self.p["knnNeighbors"]).fit(train[columns])
             return self
         for c in columns:
@@ -165,6 +164,8 @@ class Encoder:
 # --- scale ----------------------------------------------------------------------------------
 class Scaler:
     def __init__(self, p: dict[str, Any], columns: list[str]):
+        from sklearn.preprocessing import MaxAbsScaler, MinMaxScaler, RobustScaler, StandardScaler
+
         self.p, self.columns = p, columns
         method = p["method"]
         self.scaler = (
@@ -191,6 +192,9 @@ class Selector:
         self.drop: list[str] = []
 
     def fit(self, train: pd.DataFrame) -> "Selector":
+        from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+        from sklearn.feature_selection import SelectKBest, f_classif, f_regression
+
         cols = self.ctx.feature_columns(train, numeric_only=True)
         method = self.p["method"]
         if method == "variance":
@@ -226,9 +230,11 @@ class Reducer:
     def __init__(self, p: dict[str, Any], ctx: Ctx):
         self.p, self.ctx = p, ctx
         self.columns: list[str] = []
-        self.pca: PCA | None = None
+        self.pca: Any = None
 
     def fit(self, train: pd.DataFrame) -> "Reducer":
+        from sklearn.decomposition import PCA
+
         self.columns = self.ctx.feature_columns(train, numeric_only=True)
         if train[self.columns].isna().any().any():
             raise ValueError("reduce_dimensions: fill missing values first")

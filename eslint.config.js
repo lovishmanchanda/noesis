@@ -11,6 +11,7 @@ export default tseslint.config(
       'spike/**',
       'docs/**',
       '**/generated/**',
+      'apps/web/public/**',
     ],
   },
   ...tseslint.configs.recommended,
