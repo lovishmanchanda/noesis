@@ -1,3 +1,6 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Keep the package store inside the repository so nothing is written outside the folder.
+storeDir: .pnpm-store

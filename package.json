@@ -19,7 +19,10 @@
     "fixtures": "node fixtures/pipelines/generate.mjs",
     "check": "node scripts/check-links.mjs && tsc -p tsconfig.json && eslint . && prettier --check . && vitest run",
     "test:py": "python -m pytest packages/nodes-py",
-    "contract": "node packages/nodes-py/contract/run.mjs"
+    "contract": "node packages/nodes-py/contract/run.mjs",
+    "clean": "node scripts/clean.mjs",
+    "clean:yes": "node scripts/clean.mjs --yes",
+    "clean:deep": "node scripts/clean.mjs --deep"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

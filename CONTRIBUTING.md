@@ -27,7 +27,7 @@ mkdir -p .local/tools && npm install --prefix .local/tools pnpm
 .local/tools/node_modules/.bin/pnpm install
 ```
 
-The pnpm store is `.pnpm-store` (set in `.npmrc`). Both folders are git-ignored.
+The pnpm store is `.pnpm-store` (set in `pnpm-workspace.yaml`). Both folders are git-ignored.
 
 ## Before you commit
 
@@ -40,6 +40,26 @@ pnpm --filter @noesis/schema generate   # regenerate types after changing the JS
 ```
 
 CI runs the same checks.
+
+## After every phase
+
+Everything the project produces stays inside the repository folder. After each phase is merged:
+
+```bash
+pnpm clean          # lists generated and scratch files that would be removed
+pnpm clean:yes      # removes them (caches, logs, archives, scratch files, the experiment's generated data)
+pnpm clean:deep     # lists everything above plus the installed tools and dependencies
+```
+
+`pnpm clean` keeps the working setup (`node_modules`, `.pnpm-store`, and the tools and Python environment in `.local`) so the checks keep running. `node scripts/clean.mjs --deep --yes` removes those too, and the setup steps above recreate them.
+
+Then check that nothing untracked is left behind:
+
+```bash
+git status --ignored --short
+```
+
+Tools outside the folder keep their own caches (npm's and conda's package caches, for example). The project does not write anywhere else: the pnpm store is set in `pnpm-workspace.yaml` and the Python environment is created with `conda create -p .local/env`.
 
 ## Rules of the design
 

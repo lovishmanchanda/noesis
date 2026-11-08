@@ -50,6 +50,8 @@ Chosen because each is common, easy to explain, and cheap to get right: D01, D03
 
 No dates are given because the team size and hours are not known yet.
 
+**Clean-up after every phase.** When a phase is merged, run `pnpm clean` and then `pnpm clean:yes` (see [CONTRIBUTING.md](../../CONTRIBUTING.md)), so generated data, caches, logs, archives and scratch files never pile up, and check that nothing was written outside the repository folder.
+
 ## Improvements worth adding to the design
 
 These come from the review of the docs and would raise the product's value. Items marked **v1** are cheap and should go into the first release.
