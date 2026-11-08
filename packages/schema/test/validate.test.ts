@@ -76,3 +76,13 @@ describe('leakage', () => {
     });
   }
 });
+
+describe('pipelines used by the Python contract test', () => {
+  const dir = path.resolve(import.meta.dirname, '../../../fixtures/contract/pipelines');
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.json'))) {
+    it(`${file} passes the validator`, () => {
+      const result = validatePipeline(JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8')));
+      expect(result.issues).toEqual([]);
+    });
+  }
+});
