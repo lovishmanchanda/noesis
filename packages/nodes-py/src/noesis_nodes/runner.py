@@ -7,24 +7,33 @@ from typing import Any, Callable
 
 import pandas as pd
 
-from . import steps_data, steps_model, steps_prepare
+from . import steps_data
 from .context import Ctx, Data
 from .registry import resolve_params
 
-STEPS: dict[str, Callable[..., Data]] = {
+DATA_STEPS: dict[str, Callable[..., Data]] = {
     "drop_columns": steps_data.drop_columns,
     "drop_duplicates": steps_data.drop_duplicates,
     "filter_rows": steps_data.filter_rows,
     "split": steps_data.split,
-    "impute": steps_prepare.impute,
-    "handle_outliers": steps_prepare.handle_outliers,
-    "encode": steps_prepare.encode,
-    "scale": steps_prepare.scale,
-    "select_features": steps_prepare.select_features,
-    "reduce_dimensions": steps_prepare.reduce_dimensions,
-    "derive_feature": steps_prepare.derive_feature,
-    **steps_model.STEPS,
 }
+PREPARE_STEPS = ("impute", "handle_outliers", "encode", "scale", "select_features", "reduce_dimensions", "derive_feature")
+MODEL_STEPS = ("model", "validate", "test", "stability_check", "export_model")
+
+
+def step_function(node_type: str) -> Callable[..., Data] | None:
+    """The function for a step type. Modules that need scikit-learn load only when first used."""
+    if node_type in DATA_STEPS:
+        return DATA_STEPS[node_type]
+    if node_type in PREPARE_STEPS:
+        from . import steps_prepare
+
+        return getattr(steps_prepare, node_type)
+    if node_type in MODEL_STEPS:
+        from . import steps_model
+
+        return steps_model.STEPS[node_type]
+    return None
 
 
 @dataclass
@@ -83,12 +92,13 @@ def run_pipeline(
                 raise ValueError("load_csv needs a data source")
             frame = source if isinstance(source, pd.DataFrame) else steps_data.load_csv(source, params)
             outputs[node_id] = Data.single(frame)
-        elif node["type"] in STEPS:
+        else:
+            function = step_function(node["type"])
+            if function is None:
+                raise NotImplementedError(f"The step type '{node['type']}' is not implemented yet")
             upstream = node["inputs"][0]
             ctx.current_model = node_id if node["type"] == "model" else lineage.get(upstream)
-            outputs[node_id] = STEPS[node["type"]](outputs[upstream], params, ctx, node_id)
-        else:
-            raise NotImplementedError(f"The step type '{node['type']}' is not implemented yet")
+            outputs[node_id] = function(outputs[upstream], params, ctx, node_id)
         lineage[node_id] = node_id if node["type"] == "model" else (lineage.get(node["inputs"][0]) if node.get("inputs") else None)
         ctx.emit("node_finished", {"node": node_id})
     return RunResult(outputs, ctx, order)
