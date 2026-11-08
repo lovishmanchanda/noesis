@@ -30,3 +30,4 @@ experiments/engine-spike/data/out/
 
 # Old location of the experiment's local environment
 spike/
+.pnpm-store/

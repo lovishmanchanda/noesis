@@ -2,12 +2,30 @@
   "name": "noesis",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.18.0",
   "description": "A browser-based, no-code way to train and check machine learning models, locally.",
   "license": "MIT",
   "engines": {
     "node": ">=20.11"
   },
   "scripts": {
-    "check:links": "node scripts/check-links.mjs"
+    "check:links": "node scripts/check-links.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "fixtures": "node fixtures/pipelines/generate.mjs",
+    "check": "node scripts/check-links.mjs && tsc -p tsconfig.json && eslint . && prettier --check . && vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
+    "json-schema-to-typescript": "^16.0.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.1.0"
   }
 }

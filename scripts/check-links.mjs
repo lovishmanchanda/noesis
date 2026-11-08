@@ -4,7 +4,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
-const skip = new Set(['node_modules', '.git', '.env', 'public', 'data', 'results', 'dist', 'build']);
+const skip = new Set([
+  'node_modules',
+  '.git',
+  '.env',
+  'public',
+  'data',
+  'results',
+  'dist',
+  'build',
+]);
 const link = /\]\(([^)\s#]+)(#[^)\s]*)?\)/g;
 
 function* markdown(dir) {

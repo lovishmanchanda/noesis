@@ -13,7 +13,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Check Markdown links
-        run: node scripts/check-links.mjs
-      - name: Check the pipeline schema is valid JSON
-        run: node -e "JSON.parse(require('fs').readFileSync('packages/schema/pipeline.schema.json','utf8'))"
+      - name: Install pnpm
+        run: npm install -g pnpm@12.18.0
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generated types are up to date
+        run: |
+          pnpm --filter @noesis/schema generate
+          pnpm exec prettier --write packages/schema/src/generated
+          git diff --exit-code packages/schema/src/generated
+      - name: Check links, types, lint, format and tests
+        run: pnpm check
