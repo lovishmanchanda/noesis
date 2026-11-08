@@ -1,0 +1,32 @@
+# OS and editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local working folder (scratch scripts, previews)
+.local/
+
+# Node
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.env/
+.env.local
+
+# Generated, downloaded or heavy
+*.zip
+*.log
+experiments/engine-spike/public/
+experiments/engine-spike/data/out/
+
+# Old location of the experiment's local environment
+spike/
