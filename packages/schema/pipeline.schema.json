@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://noesis.local/schema/pipeline-0.1.json",
+  "title": "NOESIS pipeline",
+  "description": "Draft 0.1. Structural checks only. Graph rules (acyclic, leakage, single split, test-once) are enforced by the engine, see pipeline-schema.md.",
+  "type": "object",
+  "required": ["schemaVersion", "project", "dataset", "task", "nodes"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": "0.1" },
+    "project": {
+      "type": "object",
+      "required": ["name", "seed", "mode"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "topic": { "type": "string" },
+        "seed": { "type": "integer" },
+        "mode": { "enum": ["guided", "expert"] }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "required": ["source", "columns"],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "object",
+          "required": ["kind", "name"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "enum": ["local-file"] },
+            "name": { "type": "string" },
+            "ref": { "$ref": "#/$defs/storageRef" }
+          }
+        },
+        "rows": { "type": "integer", "minimum": 0 },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "dtype", "role"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "dtype": { "enum": ["int", "float", "bool", "category", "string", "datetime"] },
+              "role": { "enum": ["feature", "target", "exclude", "reference"] }
+            }
+          }
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "required": ["type", "primaryMetric"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["regression", "classification", "clustering", "forecasting"] },
+        "primaryMetric": { "type": "string" }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    }
+  },
+  "$defs": {
+    "storageRef": {
+      "type": "string",
+      "pattern": "^(idb|cache)://.+"
+    },
+    "param": {
+      "type": "object",
+      "required": ["value", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "description": "null means the parameter is not in use.",
+          "type": ["string", "number", "boolean", "array", "object", "null"]
+        },
+        "source": { "enum": ["default", "user", "suggested"] }
+      }
+    },
+    "node": {
+      "type": "object",
+      "required": ["id", "type", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+        "type": {
+          "enum": [
+            "load_csv", "drop_columns", "drop_duplicates", "filter_rows",
+            "impute", "handle_outliers",
+            "encode", "scale", "derive_feature", "select_features", "reduce_dimensions",
+            "split",
+            "model", "tune",
+            "validate", "test", "stability_check",
+            "export_model"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "fit_on": { "enum": ["train"] },
+        "params": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/param" }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "load_csv" } } },
+          "then": { "not": { "required": ["inputs"] } },
+          "else": { "required": ["inputs"] }
+        },
+        {
+          "if": {
+            "properties": { "type": { "enum": ["impute", "handle_outliers", "encode", "scale", "select_features", "reduce_dimensions"] } }
+          },
+          "then": { "required": ["fit_on"] }
+        }
+      ]
+    }
+  }
+}
