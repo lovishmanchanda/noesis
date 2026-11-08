@@ -1,0 +1,1235 @@
+{
+  "version": "0.1",
+  "nodes": {
+    "load_csv": {
+      "label": "Load CSV",
+      "params": {
+        "delimiter": {
+          "type": "enum",
+          "options": [",", ";", "\t", "|"],
+          "default": ",",
+          "level": "basic",
+          "label": "Separator",
+          "help": "The character that separates values in each row."
+        },
+        "header": {
+          "type": "bool",
+          "default": true,
+          "level": "basic",
+          "label": "First row has names",
+          "help": "Turn off if the first row is data, not column names."
+        },
+        "encoding": {
+          "type": "enum",
+          "options": ["utf-8", "latin-1", "utf-16"],
+          "default": "utf-8",
+          "level": "advanced",
+          "label": "Text encoding",
+          "help": "How characters are stored in the file. Change it if accents look wrong."
+        },
+        "missingMarkers": {
+          "type": "strings",
+          "default": ["", "NA", "N/A", "NaN", "null"],
+          "level": "advanced",
+          "label": "Values that mean missing",
+          "help": "Cells with these values are treated as empty."
+        },
+        "dateColumns": {
+          "type": "columns",
+          "default": null,
+          "level": "advanced",
+          "label": "Date columns",
+          "help": "Columns to read as dates."
+        },
+        "sampleRows": {
+          "type": "int",
+          "default": null,
+          "min": 100,
+          "level": "advanced",
+          "label": "Use only this many rows",
+          "help": "Read a sample while exploring a large file. Leave empty to use every row."
+        }
+      }
+    },
+    "drop_columns": {
+      "label": "Drop columns",
+      "params": {
+        "columns": {
+          "type": "columns",
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "Columns to remove",
+          "help": "These columns are removed from the data."
+        }
+      }
+    },
+    "drop_duplicates": {
+      "label": "Remove duplicate rows",
+      "params": {
+        "subset": {
+          "type": "columns",
+          "default": null,
+          "level": "advanced",
+          "label": "Compare only these columns",
+          "help": "Rows count as duplicates when these columns match. Leave empty to compare every column."
+        },
+        "keep": {
+          "type": "enum",
+          "options": ["first", "last", "none"],
+          "default": "first",
+          "level": "advanced",
+          "label": "Which copy to keep",
+          "help": "Keep the first copy, the last copy, or remove all copies."
+        }
+      }
+    },
+    "filter_rows": {
+      "label": "Filter rows",
+      "params": {
+        "column": {
+          "type": "column",
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "Column",
+          "help": "The column to test."
+        },
+        "operator": {
+          "type": "enum",
+          "options": ["==", "!=", ">", ">=", "<", "<=", "in", "not_in", "is_null", "not_null"],
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "Condition",
+          "help": "How to compare each value."
+        },
+        "value": {
+          "type": "any",
+          "default": null,
+          "required": true,
+          "when": { "param": "operator", "notIn": ["is_null", "not_null"] },
+          "level": "basic",
+          "label": "Value",
+          "help": "What to compare against."
+        }
+      }
+    },
+    "impute": {
+      "label": "Fill missing values",
+      "params": {
+        "columns": {
+          "type": "columns",
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "Columns",
+          "help": "Columns with empty cells to fill."
+        },
+        "strategy": {
+          "type": "enum",
+          "options": ["mean", "median", "most_frequent", "constant", "knn"],
+          "default": "median",
+          "level": "basic",
+          "label": "Fill with",
+          "help": "Median is a safe choice when values are skewed. Mean and median work for numbers only."
+        },
+        "fillValue": {
+          "type": "scalar",
+          "default": null,
+          "required": true,
+          "when": { "param": "strategy", "equals": "constant" },
+          "level": "basic",
+          "label": "Constant value",
+          "help": "The value to put in every empty cell."
+        },
+        "knnNeighbors": {
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 50,
+          "when": { "param": "strategy", "equals": "knn" },
+          "level": "advanced",
+          "label": "Neighbours",
+          "help": "How many similar rows to average."
+        },
+        "addMissingIndicator": {
+          "type": "bool",
+          "default": false,
+          "level": "advanced",
+          "label": "Add a was-missing column",
+          "help": "Adds a column that records which rows were filled."
+        }
+      }
+    },
+    "handle_outliers": {
+      "label": "Handle outliers",
+      "params": {
+        "columns": {
+          "type": "columns",
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "Columns",
+          "help": "Numeric columns to check."
+        },
+        "method": {
+          "type": "enum",
+          "options": ["iqr", "zscore", "percentile"],
+          "default": "iqr",
+          "level": "basic",
+          "label": "How to spot outliers",
+          "help": "IQR and z-score use a distance from the middle; percentile uses cut-off percentiles."
+        },
+        "threshold": {
+          "type": "float",
+          "default": 1.5,
+          "min": 0.5,
+          "max": 10,
+          "when": { "param": "method", "in": ["iqr", "zscore"] },
+          "level": "basic",
+          "label": "Threshold",
+          "help": "Larger values flag fewer outliers. Common choices are 1.5 for IQR and 3 for z-score."
+        },
+        "lowerPercentile": {
+          "type": "float",
+          "default": 1,
+          "min": 0,
+          "max": 49,
+          "when": { "param": "method", "equals": "percentile" },
+          "level": "advanced",
+          "label": "Lower percentile",
+          "help": "Values below this percentile are outliers."
+        },
+        "upperPercentile": {
+          "type": "float",
+          "default": 99,
+          "min": 51,
+          "max": 100,
+          "when": { "param": "method", "equals": "percentile" },
+          "level": "advanced",
+          "label": "Upper percentile",
+          "help": "Values above this percentile are outliers."
+        },
+        "action": {
+          "type": "enum",
+          "options": ["clip", "remove", "flag"],
+          "default": "clip",
+          "level": "basic",
+          "label": "What to do",
+          "help": "Clip pulls them to the limit, remove drops those training rows, flag adds a marker column."
+        }
+      }
+    },
+    "encode": {
+      "label": "Turn text into numbers",
+      "params": {
+        "columns": {
+          "type": "columns",
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "Columns",
+          "help": "Text or category columns to convert."
+        },
+        "method": {
+          "type": "enum",
+          "options": ["onehot", "ordinal", "frequency", "binary"],
+          "default": "onehot",
+          "level": "basic",
+          "label": "Method",
+          "help": "One-hot makes a yes/no column per value; ordinal numbers the values in order."
+        },
+        "handleUnknown": {
+          "type": "enum",
+          "options": ["ignore", "error"],
+          "default": "ignore",
+          "level": "advanced",
+          "label": "Unseen values",
+          "help": "What to do with a value that was not in the training rows."
+        },
+        "dropFirst": {
+          "type": "bool",
+          "default": false,
+          "when": { "param": "method", "equals": "onehot" },
+          "level": "advanced",
+          "label": "Drop the first value",
+          "help": "Avoids duplicate information. Useful for linear models."
+        },
+        "maxCategories": {
+          "type": "int",
+          "default": 50,
+          "min": 2,
+          "max": 1000,
+          "level": "advanced",
+          "label": "Most categories to keep",
+          "help": "Rarer values are grouped as other. Leave empty for no limit."
+        },
+        "ordinalOrder": {
+          "type": "map",
+          "default": null,
+          "when": { "param": "method", "equals": "ordinal" },
+          "level": "advanced",
+          "label": "Value order",
+          "help": "The order of values for each column. Leave empty for alphabetical."
+        }
+      }
+    },
+    "scale": {
+      "label": "Scale numbers",
+      "params": {
+        "columns": {
+          "type": "columns",
+          "default": null,
+          "level": "basic",
+          "label": "Columns",
+          "help": "Leave empty to scale every numeric feature."
+        },
+        "method": {
+          "type": "enum",
+          "options": ["standard", "minmax", "robust", "maxabs"],
+          "default": "standard",
+          "level": "basic",
+          "label": "Method",
+          "help": "Standard centres on zero. Min-max squeezes into a range. Robust ignores outliers."
+        },
+        "featureRange": {
+          "type": "floats",
+          "default": [0, 1],
+          "when": { "param": "method", "equals": "minmax" },
+          "level": "advanced",
+          "label": "Range",
+          "help": "The lowest and highest value after scaling."
+        }
+      }
+    },
+    "derive_feature": {
+      "label": "Create a feature",
+      "params": {
+        "newName": {
+          "type": "string",
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "New column name",
+          "help": "The name of the column to create."
+        },
+        "kind": {
+          "type": "enum",
+          "options": ["date_part", "ratio", "difference", "product", "log", "bin", "polynomial"],
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "Kind",
+          "help": "How the new column is calculated."
+        },
+        "sourceColumns": {
+          "type": "columns",
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "From columns",
+          "help": "One column, or two for ratio, difference and product."
+        },
+        "datePart": {
+          "type": "enum",
+          "options": ["year", "month", "day", "weekday", "hour"],
+          "default": null,
+          "required": true,
+          "when": { "param": "kind", "equals": "date_part" },
+          "level": "basic",
+          "label": "Part of the date",
+          "help": "Which part of the date to extract."
+        },
+        "bins": {
+          "type": "int",
+          "default": 5,
+          "min": 2,
+          "max": 100,
+          "when": { "param": "kind", "equals": "bin" },
+          "level": "advanced",
+          "label": "Number of bins",
+          "help": "How many groups to split the values into."
+        },
+        "degree": {
+          "type": "int",
+          "default": 2,
+          "min": 2,
+          "max": 5,
+          "when": { "param": "kind", "equals": "polynomial" },
+          "level": "advanced",
+          "label": "Degree",
+          "help": "The power to raise the values to."
+        }
+      }
+    },
+    "select_features": {
+      "label": "Select features",
+      "params": {
+        "method": {
+          "type": "enum",
+          "options": ["variance", "correlation", "kbest", "importance"],
+          "default": "variance",
+          "level": "basic",
+          "label": "Method",
+          "help": "How to decide which columns to keep."
+        },
+        "varianceThreshold": {
+          "type": "float",
+          "default": 0,
+          "min": 0,
+          "when": { "param": "method", "equals": "variance" },
+          "level": "advanced",
+          "label": "Smallest variance",
+          "help": "Columns that vary less than this are dropped."
+        },
+        "correlationThreshold": {
+          "type": "float",
+          "default": 0.95,
+          "min": 0.5,
+          "max": 1,
+          "when": { "param": "method", "equals": "correlation" },
+          "level": "advanced",
+          "label": "Correlation limit",
+          "help": "Of two columns that move together this closely, one is dropped."
+        },
+        "k": {
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "when": { "param": "method", "equals": "kbest" },
+          "level": "basic",
+          "label": "Columns to keep",
+          "help": "How many of the most useful columns to keep."
+        },
+        "importanceThreshold": {
+          "type": "float",
+          "default": null,
+          "when": { "param": "method", "equals": "importance" },
+          "level": "advanced",
+          "label": "Importance limit",
+          "help": "Columns less important than this are dropped."
+        }
+      }
+    },
+    "reduce_dimensions": {
+      "label": "Reduce dimensions",
+      "params": {
+        "method": {
+          "type": "enum",
+          "options": ["pca"],
+          "default": "pca",
+          "level": "basic",
+          "label": "Method",
+          "help": "Principal component analysis combines columns into fewer new ones."
+        },
+        "n_components": {
+          "type": "number",
+          "default": 0.95,
+          "min": 0,
+          "level": "basic",
+          "label": "How much to keep",
+          "help": "A number between 0 and 1 keeps that share of the variation; a whole number keeps that many components."
+        },
+        "whiten": {
+          "type": "bool",
+          "default": false,
+          "level": "advanced",
+          "label": "Whiten",
+          "help": "Gives every new column the same spread."
+        }
+      }
+    },
+    "split": {
+      "label": "Split the data",
+      "params": {
+        "ratios": {
+          "type": "floats",
+          "default": [0.7, 0.15, 0.15],
+          "level": "basic",
+          "label": "Train, validation and test shares",
+          "help": "How the rows are divided. They must add up to 1."
+        },
+        "strategy": {
+          "type": "enum",
+          "options": ["random", "stratified", "group", "time", "none"],
+          "default": "random",
+          "level": "basic",
+          "label": "Method",
+          "help": "Stratified keeps class shares equal in every part. Group keeps rows from one entity together. Time keeps order. None is for clustering."
+        },
+        "stratifyColumn": {
+          "type": "column",
+          "default": null,
+          "when": { "param": "strategy", "equals": "stratified" },
+          "level": "advanced",
+          "label": "Keep shares of",
+          "help": "Leave empty to use the target."
+        },
+        "groupColumn": {
+          "type": "column",
+          "default": null,
+          "required": true,
+          "when": { "param": "strategy", "equals": "group" },
+          "level": "basic",
+          "label": "Group column",
+          "help": "Rows with the same value stay in the same part."
+        },
+        "timeColumn": {
+          "type": "column",
+          "default": null,
+          "required": true,
+          "when": { "param": "strategy", "equals": "time" },
+          "level": "basic",
+          "label": "Time column",
+          "help": "Earlier rows go to training, later rows to testing."
+        },
+        "shuffle": {
+          "type": "bool",
+          "default": true,
+          "level": "advanced",
+          "label": "Shuffle first",
+          "help": "Mixes the rows before splitting. Off for time-ordered splits."
+        }
+      }
+    },
+    "model": {
+      "label": "Model",
+      "params": {
+        "algorithm": {
+          "type": "enum",
+          "options": [],
+          "default": null,
+          "required": true,
+          "level": "basic",
+          "label": "Algorithm",
+          "help": "The kind of model to train. The choices depend on the task."
+        },
+        "preset": {
+          "type": "enum",
+          "options": ["fast", "balanced", "accurate"],
+          "default": "balanced",
+          "level": "basic",
+          "label": "Preset",
+          "help": "A shortcut that fills in the settings."
+        }
+      }
+    },
+    "tune": {
+      "label": "Tune settings",
+      "params": {
+        "method": {
+          "type": "enum",
+          "options": ["grid", "random", "bayesian", "sweep"],
+          "default": "random",
+          "level": "basic",
+          "label": "Search method",
+          "help": "How settings are tried. Sweep tries each value of one setting."
+        },
+        "searchSpace": {
+          "type": "map",
+          "default": null,
+          "level": "advanced",
+          "label": "Ranges to search",
+          "help": "Leave empty to use each algorithm's default ranges."
+        },
+        "nTrials": {
+          "type": "int",
+          "default": 30,
+          "min": 5,
+          "max": 500,
+          "level": "basic",
+          "label": "Number of tries",
+          "help": "More tries can find better settings but take longer."
+        },
+        "scoring": {
+          "type": "string",
+          "default": null,
+          "level": "advanced",
+          "label": "Score to improve",
+          "help": "Leave empty to use the task's main metric."
+        },
+        "timeLimitSeconds": {
+          "type": "int",
+          "default": null,
+          "min": 10,
+          "level": "advanced",
+          "label": "Time limit (seconds)",
+          "help": "Stop searching after this long."
+        },
+        "sweepParam": {
+          "type": "enum",
+          "options": ["n_clusters", "eps"],
+          "default": "n_clusters",
+          "when": { "param": "method", "equals": "sweep" },
+          "level": "basic",
+          "label": "Setting to sweep",
+          "help": "The clustering setting to vary."
+        },
+        "sweepRange": {
+          "type": "floats",
+          "default": [2, 10],
+          "when": { "param": "method", "equals": "sweep" },
+          "level": "basic",
+          "label": "Range",
+          "help": "The smallest and largest value to try."
+        }
+      }
+    },
+    "validate": {
+      "label": "Validate",
+      "params": {
+        "method": {
+          "type": "enum",
+          "options": [
+            "none",
+            "holdout",
+            "kfold",
+            "stratified_kfold",
+            "repeated_kfold",
+            "time_series_split",
+            "stability"
+          ],
+          "default": "holdout",
+          "level": "basic",
+          "label": "Method",
+          "help": "How the model is checked on rows it was not trained on."
+        },
+        "k": {
+          "type": "int",
+          "default": 5,
+          "min": 2,
+          "max": 20,
+          "when": {
+            "param": "method",
+            "in": ["kfold", "stratified_kfold", "repeated_kfold", "time_series_split"]
+          },
+          "level": "basic",
+          "label": "Number of folds",
+          "help": "How many parts the training rows are divided into."
+        },
+        "repeats": {
+          "type": "int",
+          "default": 3,
+          "min": 2,
+          "max": 20,
+          "when": { "param": "method", "equals": "repeated_kfold" },
+          "level": "advanced",
+          "label": "Repeats",
+          "help": "How many times the whole procedure is repeated."
+        },
+        "metrics": {
+          "type": "strings",
+          "default": null,
+          "level": "advanced",
+          "label": "Scores to report",
+          "help": "Leave empty to use the defaults for the task."
+        },
+        "shuffle": {
+          "type": "bool",
+          "default": true,
+          "level": "advanced",
+          "label": "Shuffle first",
+          "help": "Mixes the rows before dividing them. Off for time-ordered checks."
+        }
+      }
+    },
+    "test": {
+      "label": "Final test",
+      "params": {
+        "metrics": {
+          "type": "strings",
+          "default": null,
+          "level": "advanced",
+          "label": "Scores to report",
+          "help": "Leave empty to use the defaults for the task."
+        }
+      }
+    },
+    "stability_check": {
+      "label": "Stability check",
+      "params": {
+        "runs": {
+          "type": "int",
+          "default": 10,
+          "min": 3,
+          "max": 50,
+          "level": "basic",
+          "label": "Number of re-runs",
+          "help": "How many times to re-cluster on a random sample."
+        },
+        "sampleFraction": {
+          "type": "float",
+          "default": 0.8,
+          "min": 0.5,
+          "max": 0.95,
+          "level": "advanced",
+          "label": "Share of rows per run",
+          "help": "The part of the data used in each re-run."
+        },
+        "metric": {
+          "type": "enum",
+          "options": ["adjusted_rand", "adjusted_mutual_info"],
+          "default": "adjusted_rand",
+          "level": "advanced",
+          "label": "Similarity score",
+          "help": "How the groups from two runs are compared."
+        }
+      }
+    },
+    "export_model": {
+      "label": "Export",
+      "params": {
+        "name": {
+          "type": "string",
+          "default": null,
+          "level": "basic",
+          "label": "Name",
+          "help": "Leave empty to use the project name."
+        },
+        "format": {
+          "type": "enum",
+          "options": ["bundle", "onnx", "python_script"],
+          "default": "bundle",
+          "level": "basic",
+          "label": "Format",
+          "help": "The file to make."
+        },
+        "includePreprocessing": {
+          "type": "bool",
+          "default": true,
+          "level": "basic",
+          "label": "Include preparation steps",
+          "help": "Keeps scalers and encoders with the model."
+        },
+        "includeMetrics": {
+          "type": "bool",
+          "default": true,
+          "level": "advanced",
+          "label": "Include a model card",
+          "help": "Adds the data used, scores and limits."
+        },
+        "includeAssignments": {
+          "type": "bool",
+          "default": true,
+          "level": "advanced",
+          "label": "Include cluster assignments",
+          "help": "Clustering only: a file with each row's group."
+        }
+      }
+    }
+  },
+  "algorithms": {
+    "linear_regression": {
+      "label": "Linear regression",
+      "tasks": ["regression"],
+      "params": {
+        "fit_intercept": {
+          "type": "bool",
+          "default": true,
+          "level": "advanced",
+          "label": "Fit an intercept",
+          "help": "Lets the line start away from zero."
+        }
+      }
+    },
+    "ridge": {
+      "label": "Ridge regression",
+      "tasks": ["regression"],
+      "params": {
+        "alpha": {
+          "type": "float",
+          "default": 1,
+          "min": 0.0001,
+          "max": 1000,
+          "tune": { "range": [0.0001, 1000], "scale": "log" },
+          "level": "basic",
+          "label": "Strength",
+          "help": "Higher values keep the model simpler."
+        }
+      }
+    },
+    "lasso": {
+      "label": "Lasso regression",
+      "tasks": ["regression"],
+      "params": {
+        "alpha": {
+          "type": "float",
+          "default": 1,
+          "min": 0.0001,
+          "max": 1000,
+          "tune": { "range": [0.0001, 1000], "scale": "log" },
+          "level": "basic",
+          "label": "Strength",
+          "help": "Higher values push more weights to zero."
+        },
+        "max_iter": {
+          "type": "int",
+          "default": 1000,
+          "min": 100,
+          "max": 100000,
+          "level": "advanced",
+          "label": "Most steps",
+          "help": "The most iterations the solver may use."
+        }
+      }
+    },
+    "logistic_regression": {
+      "label": "Logistic regression",
+      "tasks": ["classification"],
+      "params": {
+        "C": {
+          "type": "float",
+          "default": 1,
+          "min": 0.001,
+          "max": 1000,
+          "tune": { "range": [0.001, 1000], "scale": "log" },
+          "level": "basic",
+          "label": "Flexibility",
+          "help": "Higher values fit the training rows more closely."
+        },
+        "penalty": {
+          "type": "enum",
+          "options": ["l1", "l2", "none"],
+          "default": "l2",
+          "level": "advanced",
+          "label": "Penalty",
+          "help": "How large weights are discouraged."
+        },
+        "max_iter": {
+          "type": "int",
+          "default": 100,
+          "min": 50,
+          "max": 10000,
+          "level": "advanced",
+          "label": "Most steps",
+          "help": "The most iterations the solver may use."
+        },
+        "class_weight": {
+          "type": "enum",
+          "options": ["balanced"],
+          "default": null,
+          "level": "advanced",
+          "label": "Class weights",
+          "help": "Balanced gives rare classes more weight."
+        }
+      }
+    },
+    "decision_tree": {
+      "label": "Decision tree",
+      "tasks": ["regression", "classification"],
+      "params": {
+        "max_depth": {
+          "type": "int",
+          "default": null,
+          "min": 1,
+          "max": 50,
+          "tune": { "range": [2, 20] },
+          "level": "basic",
+          "label": "Deepest level",
+          "help": "Limits how many questions the tree may ask in a row."
+        },
+        "min_samples_split": {
+          "type": "int",
+          "default": 2,
+          "min": 2,
+          "max": 100,
+          "level": "advanced",
+          "label": "Rows needed to split",
+          "help": "A group smaller than this is not split further."
+        },
+        "min_samples_leaf": {
+          "type": "int",
+          "default": 1,
+          "min": 1,
+          "max": 100,
+          "level": "advanced",
+          "label": "Rows needed per end group",
+          "help": "Every final group keeps at least this many rows."
+        },
+        "criterion": {
+          "type": "enum",
+          "options": ["gini", "entropy", "squared_error"],
+          "default": null,
+          "level": "advanced",
+          "label": "Split quality measure",
+          "help": "Leave empty to use the usual one for the task."
+        }
+      }
+    },
+    "random_forest": {
+      "label": "Random forest",
+      "tasks": ["regression", "classification"],
+      "params": {
+        "n_estimators": {
+          "type": "int",
+          "default": 100,
+          "min": 10,
+          "max": 1000,
+          "tune": { "range": [50, 500] },
+          "level": "basic",
+          "label": "Number of trees",
+          "help": "More trees are steadier but slower."
+        },
+        "max_depth": {
+          "type": "int",
+          "default": null,
+          "min": 1,
+          "max": 50,
+          "tune": { "range": [3, 30] },
+          "level": "basic",
+          "label": "Deepest level",
+          "help": "Limits how many questions each tree may ask in a row."
+        },
+        "min_samples_leaf": {
+          "type": "int",
+          "default": 1,
+          "min": 1,
+          "max": 50,
+          "level": "advanced",
+          "label": "Rows needed per end group",
+          "help": "Every final group keeps at least this many rows."
+        },
+        "max_features": {
+          "type": "enum",
+          "options": ["sqrt", "log2", "all"],
+          "default": "sqrt",
+          "level": "advanced",
+          "label": "Columns tried per split",
+          "help": "How many columns each split may look at."
+        },
+        "bootstrap": {
+          "type": "bool",
+          "default": true,
+          "level": "advanced",
+          "label": "Resample rows",
+          "help": "Each tree trains on a random resample of the rows."
+        },
+        "class_weight": {
+          "type": "enum",
+          "options": ["balanced"],
+          "default": null,
+          "level": "advanced",
+          "label": "Class weights",
+          "help": "Balanced gives rare classes more weight. Classification only."
+        }
+      }
+    },
+    "gradient_boosting": {
+      "label": "Gradient boosting",
+      "tasks": ["regression", "classification"],
+      "params": {
+        "n_estimators": {
+          "type": "int",
+          "default": 100,
+          "min": 10,
+          "max": 2000,
+          "tune": { "range": [50, 600] },
+          "level": "basic",
+          "label": "Number of rounds",
+          "help": "Each round adds a small tree that corrects the last."
+        },
+        "learning_rate": {
+          "type": "float",
+          "default": 0.1,
+          "min": 0.001,
+          "max": 1,
+          "tune": { "range": [0.01, 0.5], "scale": "log" },
+          "level": "basic",
+          "label": "Learning rate",
+          "help": "Smaller values learn more slowly and more carefully."
+        },
+        "max_depth": {
+          "type": "int",
+          "default": 3,
+          "min": 1,
+          "max": 15,
+          "tune": { "range": [2, 10] },
+          "level": "basic",
+          "label": "Deepest level",
+          "help": "Limits the size of each small tree."
+        },
+        "subsample": {
+          "type": "float",
+          "default": 1,
+          "min": 0.3,
+          "max": 1,
+          "level": "advanced",
+          "label": "Share of rows per round",
+          "help": "Using fewer rows per round can reduce overfitting."
+        },
+        "early_stopping_rounds": {
+          "type": "int",
+          "default": null,
+          "min": 5,
+          "max": 200,
+          "level": "advanced",
+          "label": "Stop when not improving for",
+          "help": "Stops after this many rounds without improvement on the validation rows."
+        }
+      }
+    },
+    "knn": {
+      "label": "Nearest neighbours",
+      "tasks": ["regression", "classification"],
+      "params": {
+        "n_neighbors": {
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 100,
+          "tune": { "range": [3, 30] },
+          "level": "basic",
+          "label": "Neighbours",
+          "help": "How many similar rows vote on the answer."
+        },
+        "weights": {
+          "type": "enum",
+          "options": ["uniform", "distance"],
+          "default": "uniform",
+          "level": "advanced",
+          "label": "Vote weighting",
+          "help": "Distance gives closer rows more say."
+        },
+        "metric": {
+          "type": "enum",
+          "options": ["euclidean", "manhattan", "minkowski"],
+          "default": "euclidean",
+          "level": "advanced",
+          "label": "Distance",
+          "help": "How closeness between rows is measured."
+        }
+      }
+    },
+    "svm": {
+      "label": "Support vector machine",
+      "tasks": ["regression", "classification"],
+      "params": {
+        "C": {
+          "type": "float",
+          "default": 1,
+          "min": 0.01,
+          "max": 1000,
+          "tune": { "range": [0.01, 1000], "scale": "log" },
+          "level": "basic",
+          "label": "Flexibility",
+          "help": "Higher values fit the training rows more closely."
+        },
+        "kernel": {
+          "type": "enum",
+          "options": ["linear", "rbf", "poly"],
+          "default": "rbf",
+          "level": "basic",
+          "label": "Shape",
+          "help": "The kind of boundary the model can draw."
+        },
+        "gamma": {
+          "type": "scalar",
+          "default": "scale",
+          "level": "advanced",
+          "label": "Reach",
+          "help": "scale, auto, or a number. Larger values make each row's influence shorter."
+        },
+        "degree": {
+          "type": "int",
+          "default": 3,
+          "min": 2,
+          "max": 6,
+          "when": { "param": "kernel", "equals": "poly" },
+          "level": "advanced",
+          "label": "Degree",
+          "help": "The power used by the polynomial shape."
+        }
+      }
+    },
+    "naive_bayes": {
+      "label": "Naive Bayes",
+      "tasks": ["classification"],
+      "params": {
+        "var_smoothing": {
+          "type": "float",
+          "default": 1e-9,
+          "min": 1e-12,
+          "max": 0.001,
+          "tune": { "range": [1e-12, 0.001], "scale": "log" },
+          "level": "advanced",
+          "label": "Smoothing",
+          "help": "Adds a little spread so no column is treated as exact."
+        }
+      }
+    },
+    "mlp": {
+      "label": "Neural network",
+      "tasks": ["regression", "classification"],
+      "params": {
+        "hidden_layers": {
+          "type": "ints",
+          "default": [64, 32],
+          "level": "basic",
+          "label": "Layer sizes",
+          "help": "The number of units in each hidden layer."
+        },
+        "activation": {
+          "type": "enum",
+          "options": ["relu", "tanh", "logistic"],
+          "default": "relu",
+          "level": "advanced",
+          "label": "Activation",
+          "help": "The function each unit applies."
+        },
+        "optimizer": {
+          "type": "enum",
+          "options": ["adam", "sgd"],
+          "default": "adam",
+          "level": "advanced",
+          "label": "Learning method",
+          "help": "How the weights are updated."
+        },
+        "learning_rate": {
+          "type": "float",
+          "default": 0.001,
+          "min": 0.00001,
+          "max": 0.5,
+          "tune": { "range": [0.0001, 0.1], "scale": "log" },
+          "level": "basic",
+          "label": "Learning rate",
+          "help": "Smaller values learn more slowly and more carefully."
+        },
+        "batch_size": {
+          "type": "int",
+          "default": 32,
+          "min": 8,
+          "max": 1024,
+          "level": "advanced",
+          "label": "Rows per step",
+          "help": "How many rows are used for each weight update."
+        },
+        "epochs": {
+          "type": "int",
+          "default": 100,
+          "min": 1,
+          "max": 2000,
+          "level": "basic",
+          "label": "Passes over the data",
+          "help": "How many times the model sees all the training rows."
+        },
+        "l2": {
+          "type": "float",
+          "default": 0.0001,
+          "min": 0,
+          "max": 1,
+          "level": "advanced",
+          "label": "Weight penalty",
+          "help": "Discourages large weights to reduce overfitting."
+        },
+        "early_stopping": {
+          "type": "bool",
+          "default": true,
+          "level": "basic",
+          "label": "Stop early",
+          "help": "Stops when the validation score stops improving and keeps the best point."
+        },
+        "patience": {
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "max": 100,
+          "when": { "param": "early_stopping", "equals": true },
+          "level": "advanced",
+          "label": "Patience",
+          "help": "How many passes to wait for an improvement before stopping."
+        }
+      }
+    },
+    "kmeans": {
+      "label": "K-means",
+      "tasks": ["clustering"],
+      "params": {
+        "n_clusters": {
+          "type": "int",
+          "default": null,
+          "required": true,
+          "min": 2,
+          "max": 50,
+          "level": "basic",
+          "label": "Number of groups",
+          "help": "How many groups to find."
+        },
+        "init": {
+          "type": "enum",
+          "options": ["k-means++", "random"],
+          "default": "k-means++",
+          "level": "advanced",
+          "label": "Starting points",
+          "help": "k-means++ spreads the starting centres out."
+        },
+        "max_iter": {
+          "type": "int",
+          "default": 300,
+          "min": 1,
+          "max": 5000,
+          "level": "advanced",
+          "label": "Most steps",
+          "help": "The most iterations per attempt."
+        },
+        "n_init": {
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "max": 100,
+          "level": "advanced",
+          "label": "Attempts",
+          "help": "How many starting points to try. The best result is kept."
+        }
+      }
+    },
+    "dbscan": {
+      "label": "DBSCAN",
+      "tasks": ["clustering"],
+      "params": {
+        "eps": {
+          "type": "float",
+          "default": 0.5,
+          "min": 0.01,
+          "max": 100,
+          "level": "basic",
+          "label": "Neighbourhood size",
+          "help": "Rows closer than this belong to the same group."
+        },
+        "min_samples": {
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 100,
+          "level": "basic",
+          "label": "Rows needed for a group",
+          "help": "How many close rows make a dense area."
+        }
+      }
+    },
+    "hierarchical": {
+      "label": "Hierarchical clustering",
+      "tasks": ["clustering"],
+      "params": {
+        "n_clusters": {
+          "type": "int",
+          "default": null,
+          "required": true,
+          "min": 2,
+          "max": 50,
+          "level": "basic",
+          "label": "Number of groups",
+          "help": "How many groups to cut the tree into."
+        },
+        "linkage": {
+          "type": "enum",
+          "options": ["ward", "complete", "average", "single"],
+          "default": "ward",
+          "level": "advanced",
+          "label": "How groups merge",
+          "help": "The rule for joining two groups."
+        }
+      }
+    }
+  }
+}
