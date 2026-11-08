@@ -1,0 +1,151 @@
+# NOESIS: engine spike results (run 1, Mac only)
+
+Plan: [spike-plan.md](spike-plan.md). Code and raw JSON: `experiments/engine-spike/` and `experiments/engine-spike/results/`. Reproduce with [experiments/engine-spike/README.md](../../experiments/engine-spike/README.md).
+
+## Verdict
+
+**Go, with adjustments.** Pyodide (Python in WebAssembly) is fast enough for the v1 tabular workflow on this machine, live events work, and cancellation works. Two items missed their proposed criteria as written (warm start time, cancel for scikit-learn's MLP) and have concrete fixes. Run 1 covers one machine and one browser only, so this is a strong first signal, not a final answer.
+
+## What was and was not tested
+
+| Tested | Not tested yet |
+|---|---|
+| Mac: MacBook Air, Apple M2, 8 cores, 8 GB RAM, macOS 27.2 | Windows machine, NVIDIA GPU (CUDA) |
+| Chromium 152 (embedded browser), cross-origin isolated | Firefox, Safari |
+| Pyodide 314.0.7 (Python 3.14.2) with numpy 2.4.6, pandas 3.0.2, scikit-learn 1.8.0, scipy 1.18.0, XGBoost 2.1.4, pyarrow 22.0.0 | Real user datasets (only seeded synthetic data) |
+| Native baseline: same library versions, Python 3.14.10, in `experiments/engine-spike/.env` | The point where a big file fails (not reached, see E2) |
+
+**Noise warning.** The Mac was running other apps. The same load took 3.4 s once and 19–24 s when the machine was busy, and one random forest run varied from 31 s to 42 s. Numbers below are from calm runs unless marked. Each timing was run 1 to 3 times, not the 5 the plan asked for.
+
+## Results by experiment
+
+### E1. Load time (criterion: warm start under 5 s; cold under 30 s at 50 Mbit)
+
+| Item | Result |
+|---|---|
+| Download size, uncompressed | 51.7 MB: core 13.5, numpy+pandas 7.9, scikit-learn+scipy 18.7, XGBoost 1.6, pyarrow 10.0 |
+| Package load, warm, calm machine | about 3.3 s (core 1.0, numpy+pandas 0.4, scikit-learn 1.0, XGBoost 0.06, pyarrow 0.85) |
+| Python imports on top of that | about 2.4 s (calm). `import sklearn` is the big one. |
+| **Total warm start, calm** | **7.3 s** (3 runs: 7.47, 7.32, 7.31) |
+| Total warm start, machine busy | 19–24 s |
+| Cold start at 50 Mbit | estimate about 16 s (7.3 s plus 51.7 MB at 50 Mbit); not measured with real throttling |
+
+**Result: warm start misses the 5 s target (7.3 s).** Package loading alone (3.3 s) would pass. The time is mostly compiling WebAssembly libraries and importing scikit-learn.
+
+Tried a fix: a Pyodide memory snapshot taken after imports, to skip the import cost. It failed with an internal error ("Unexpected hiwire entry") in this Pyodide build, even with a minimal setup. Not viable without more digging.
+
+Fixes to plan: load pyarrow and XGBoost only when needed, show a proper loading screen, keep Pyodide cacheable so the browser reuses its compiled code, and budget about 7 s for first interaction. Re-test snapshots when Pyodide updates.
+
+### E2. Data scale (criterion: 100k×50 reads and profiles in under 20 s with under 1.5 GB)
+
+| File | CSV size | Read | Profile | WebAssembly heap after | Native read / profile |
+|---|---|---|---|---|---|
+| 10k × 20 | 1.4 MB | 0.04 s | 0.08 s | 113 MB | 0.03 / 0.04 s |
+| 100k × 20 | 13.9 MB | 0.16 s | 0.33 s | 136 MB | 0.18 / 0.20 s |
+| 100k × 50 | 36.8 MB | 0.38 s | 0.78 s | 196 MB | 0.46 / 0.62 s |
+| 500k × 50 | 184 MB | 1.8 s | 2.8 s | 584 MB | 1.55 / 1.95 s |
+| 1M × 50 | 369 MB | 3.7 s | 5.8 s | 1,316 MB | 2.89 / 3.37 s |
+| 1M × 50, sample 100k rows | 369 MB | 0.39 s | 0.78 s | 196 MB | |
+| 1M × 50, 10 columns only | 369 MB | 1.9 s | 1.1 s | 338 MB | |
+
+**Pass, with room to spare.** pandas in WebAssembly runs close to native speed. The main thread never stalled (longest frame gap 18 ms). No failure up to 1M rows × 50 columns, so the real limit is not found yet: the 4 GB WebAssembly cap and a 2–3M row file still need testing. Selecting columns or sampling cuts memory a lot, as expected. E10 (DuckDB-WASM) is not needed on this evidence.
+
+### E3. Speed against native (criterion: random forest within 5× of single-thread native and under 2 min; XGBoost within 3× and under 1 min)
+
+100k × 50 file (80k training rows, 67 features after encoding), Pyodide single thread against native.
+
+| Model | Pyodide fit | Native 1 thread | Native all threads | Ratio to 1 thread |
+|---|---|---|---|---|
+| Logistic regression | 1.0 s | 0.29 s | 0.22 s | 3.5× |
+| Ridge | 3.5 s | 0.02 s | 0.01 s | about 160× (3.5 s absolute) |
+| KNN (predict 2k rows) | 0.72 s | 0.08 s | 0.04 s | 9× |
+| K-means (8 clusters) | 1.9 s | 0.40 s | 0.26 s | 4.8× |
+| **Random forest (100 trees, depth 12)** | **31–42 s** | 23.7 s | 4.5 s | **1.3–1.8×** |
+| **XGBoost (200 rounds)** | **4.6–4.8 s** | 2.86 s | 1.17 s | **1.7×** |
+| MLP (64, 32), 20 epochs | 17.5 s (43 s when the machine was busy) | 2.4 s | 2.5 s | 7× |
+
+**Pass for the two criteria models.** Tree models are close to native speed. Against a multi-threaded native run the gap is larger (random forest about 7–9×, XGBoost about 4×) because the browser has no threads (see E4). Anything dominated by dense linear algebra (ridge, the neural network) is much slower than native because WebAssembly has no fast BLAS; fine at this size, but the neural network is the weak spot and will not scale. Scores match native closely (see E9 for the small differences).
+
+### E4. Threads
+
+Python inside Pyodide sees 1 CPU (`os.cpu_count()` is 1), even though the browser reports 8 hardware threads. Starting a thread fails ("can't start new thread"). `n_jobs=4` gave no speedup for random forest (2.87 s against 2.86 s) and almost none for XGBoost (1.00 against 0.93 s). **The browser engine is single-threaded.** Heavy work belongs on the companion.
+
+### E5. Cancellation (criterion: stops within 2 s by interrupt, or within 8 s by terminate and restart)
+
+| Job | Time from cancel to stop | Result |
+|---|---|---|
+| pandas read of a 184 MB file | 94 ms | stopped |
+| Random forest fit (400 trees) | 0.67–1.4 s | stopped (limited by time per tree) |
+| XGBoost, no callback | 242 ms | stopped |
+| XGBoost, with a Python callback | 59 ms | stopped |
+| scikit-learn MLP epoch loop | **not stopped in 116 s** | interrupt was swallowed |
+| Terminate worker and restart | 7–15 s (about 7.3 s when calm) | works, state lost |
+
+The interrupt works across pandas, scikit-learn trees and XGBoost, and the worker stays usable afterwards. **The MLP exception:** scikit-learn's own MLP training code catches `KeyboardInterrupt`, prints a warning and carries on (confirmed in its source). So library code can swallow the interrupt. **Rule for the engine: every training loop we own checks our own cancel flag each epoch, round or tree, in addition to the interrupt.** The terminate-and-restart fallback is on the edge of the 8 s criterion.
+
+### E6. Live events (criterion: overhead under 10%, equivalence checks hold, UI responsive at 30 messages per second)
+
+| Check | Result |
+|---|---|
+| MLP epoch loop (`partial_fit`) against normal `fit` | accuracy 0.8288 against 0.8296: within noise |
+| MLP loop with events against without (3 alternating runs) | −1.7%, +0.1%, +0.7% |
+| Random forest grown with `warm_start` against one shot | **identical predictions** (difference 0), time +7% |
+| XGBoost with a per-round callback against without (3 runs) | −2.4%, +0.2%, −0.3%; same predictions |
+| K-means one iteration at a time against normal fit | **identical**: same inertia (8,737,743) and same 69 iterations |
+| Event throughput | 20,000 events in 0.12 s (about 6 µs each); main thread longest frame gap 17 ms |
+| Payload size | 30 events including 15 weight snapshots (32×32 floats) came to 67 kB |
+
+**Pass.** All four live-event loops work and match the normal fits, and events are effectively free. An earlier run showed a 35% overhead and a 6 s frame gap, but both came from a busy machine and a throttled pane, and the repeated runs above replaced them.
+
+### E7. Storage (criterion: cached 100k×50 output reloads in under 2 s)
+
+| Format (100k × 50) | Size | Write | Read |
+|---|---|---|---|
+| Feather, uncompressed | 42.8 MB | 0.21 s | 0.94 s |
+| **Feather, lz4** | **31.4 MB** | 0.46 s | **0.49 s** |
+| Feather, zstd | 28.9 MB | 0.69 s | 0.69 s |
+| Parquet, snappy | 31.5 MB | 1.72 s | 1.14 s |
+| Parquet, zstd | 30.0 MB | 1.67 s | 0.77 s |
+
+`pyarrow` works in Pyodide with all codecs. Storing the 42.8 MB file: Cache Storage put 164 ms and get 19 ms; IndexedDB put 131 ms and get 43 ms. **Pass.** Recommendation: Feather with lz4 for cached node outputs. The browser reported a storage quota of about 1.56 GB, and `persist()` was not granted, so the eviction rules in [hashing-and-runs.md](../design/hashing-and-runs.md) matter; other browsers may differ.
+
+### E9. Same code in both runtimes
+
+The same `py/nodes.py` ran unchanged in Pyodide and natively. The profile output was identical (hash of the profile rounded to 4 decimals matched). Logistic regression (0.83) and KNN (0.7265) scores were identical. **Tree and clustering results differ slightly:** random forest scored 0.811 against 0.8105 on the 10k file (one test row), 0.82125 against 0.8226 on the 100k file, and K-means inertia differed by 0.2% (14,043,241 against 14,068,480). So the single-codebase argument holds, but results are not bit-identical across runtimes. **`deterministic: "exact"` applies only within one engine;** moving a project between the browser and the companion gives `approx` results. Update the run records accordingly.
+
+### E11. GPU and platform (Mac part)
+
+WebGPU is available in this browser (Apple GPU, Metal 3, 23 features including `shader-f16` and subgroups), so a WebGPU path for the later deep-learning engine is viable on Mac. There is no NVIDIA GPU here, so CPU against CUDA is not measured. `spike/native/gpu_bench.py` is ready to run on the Windows machine.
+
+### E8 and E10
+
+E8 (browser matrix) covered Chromium only. E10 was not triggered because E2 passed.
+
+## Decision matrix outcome
+
+| Rule from the plan | Outcome |
+|---|---|
+| All critical items pass | Almost: E1 warm start misses its target |
+| E5 interrupt only at boundaries | Applies to MLP: add own cancel flag |
+| E1 warm start too slow | Work on loading strategy; stays a go because package loading alone is 3.3 s and imports are 2.4 s |
+| E6 equivalence checks fail | Did not happen |
+| E9 fails | Did not fail; results are close but not bit-identical |
+
+## Adjustments to build into the design
+
+1. **Loading:** lazy-load heavy packages, show a loading screen, keep Pyodide files cacheable, budget about 7 s warm. Re-test memory snapshots later.
+2. **Cancellation:** interrupt plus our own cancel flag checked every epoch, round and tree. Never rely on the interrupt alone.
+3. **Reproducibility:** `exact` within one engine, `approx` across engines.
+4. **Neural networks:** the browser MLP is about 7× slower than native and will not scale. Cap rows × epochs for the in-browser MLP, and send serious neural-network work to the companion or WebGPU.
+5. **Linear algebra:** BLAS-heavy models (ridge and similar) are far slower than native; fine at 80k × 67, but re-check on larger data.
+6. **Cache format:** Feather with lz4.
+7. **Data limits:** start with a soft limit near 1M rows × 50 columns and warn above it, until the real limit is found.
+8. **Threads:** document that the browser engine is single-threaded; the companion is the route to speed.
+
+## Still to do
+
+- Run `experiments/engine-spike/` on the Windows machine (E1–E9), plus `gpu_bench.py` if it has an NVIDIA GPU.
+- Run Firefox and Safari (E8). The built-in browser only covers Chromium.
+- Find the real size limit (2–3M rows, the 4 GB cap).
+- Repeat timings 5 times on a quiet machine, and test with real throttled cold loads.
+- Real user datasets instead of synthetic ones.
