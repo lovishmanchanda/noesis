@@ -1,0 +1,7 @@
+{
+  "name": "@noesis/registry",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Node types, parameters, defaults and rule metadata as data files",
+  "license": "MIT"
+}

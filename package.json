@@ -1,0 +1,13 @@
+{
+  "name": "noesis",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A browser-based, no-code way to train and check machine learning models, locally.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "check:links": "node scripts/check-links.mjs"
+  }
+}
