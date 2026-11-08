@@ -8,7 +8,10 @@ export interface SampleInfo {
   file: string;
   name: string;
   description: string;
-  task: 'regression' | 'classification' | 'clustering';
+  goal: 'number' | 'category' | 'groups';
+  target?: string;
+  exclude?: string[];
+  reference?: string;
 }
 
 export function Startup({

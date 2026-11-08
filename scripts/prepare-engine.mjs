@@ -72,14 +72,18 @@ const list = [
     file: 'housing_small.csv',
     name: 'Home prices',
     description: 'Predict a price (a number) or whether a home is expensive (a category).',
-    task: 'regression',
+    goal: 'number',
+    target: 'price',
+    exclude: ['id', 'expensive', 'moved_in'],
   },
   {
     id: 'customers',
     file: 'customers_small.csv',
     name: 'Customers',
     description: 'Group similar customers. There is no right answer to predict.',
-    task: 'clustering',
+    goal: 'groups',
+    exclude: ['customer_id'],
+    reference: 'segment',
   },
 ];
 for (const s of list)

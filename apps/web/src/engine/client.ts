@@ -6,6 +6,7 @@ import {
   type EngineProgress,
   type LoadSettings,
 } from '@noesis/engine-client';
+import { friendlyError } from './errors';
 import type { WorkerMessage, WorkerRequest, WorkerResult } from './protocol';
 
 type Distribute<T> = T extends unknown ? Omit<T, 'id'> : never;
@@ -35,7 +36,9 @@ export class BrowserEngine implements Engine {
       if (message.type === 'result') waiting.resolve(message.result);
       else
         waiting.reject(
-          message.name === 'KeyboardInterrupt' ? new CancelledError() : new Error(message.message),
+          message.name === 'KeyboardInterrupt'
+            ? new CancelledError()
+            : new Error(friendlyError(message.name, message.message)),
         );
     };
     this.worker.onerror = (event) => {

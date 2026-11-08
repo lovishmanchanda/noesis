@@ -12,6 +12,9 @@ export interface ShellProps {
   nextStep: string;
   /** Why the Next button is not available yet, if it is not. */
   blocked?: string | undefined;
+  /** A problem from the last action, shown above the screen. */
+  error?: string | null | undefined;
+  busy?: boolean | undefined;
   onNext: () => void;
   children: ReactNode;
 }
@@ -22,6 +25,8 @@ export function Shell({
   engineLabel,
   nextStep,
   blocked,
+  error,
+  busy,
   onNext,
   children,
 }: ShellProps) {
@@ -48,6 +53,11 @@ export function Shell({
           </button>
         </div>
         <p className="purpose">{def.purpose}</p>
+        {error && (
+          <div className="notice error" role="alert">
+            {error}
+          </div>
+        )}
         <div className="screen">{children}</div>
         <div className="bottom-bar">
           <button type="button" onClick={back} disabled={screen === 'project'}>
@@ -63,9 +73,9 @@ export function Shell({
               type="button"
               className="primary"
               onClick={onNext}
-              aria-disabled={Boolean(blocked)}
+              aria-disabled={Boolean(blocked) || Boolean(busy)}
             >
-              Next
+              {busy ? 'Working…' : 'Next'}
             </button>
           </div>
         </div>
