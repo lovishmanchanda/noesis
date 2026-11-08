@@ -22,7 +22,10 @@
     "contract": "node packages/nodes-py/contract/run.mjs",
     "clean": "node scripts/clean.mjs",
     "clean:yes": "node scripts/clean.mjs --yes",
-    "clean:deep": "node scripts/clean.mjs --deep"
+    "clean:deep": "node scripts/clean.mjs --deep",
+    "prepare:engine": "node scripts/prepare-engine.mjs",
+    "dev": "node scripts/prepare-engine.mjs && pnpm --filter @noesis/web dev",
+    "build:web": "node scripts/prepare-engine.mjs && pnpm --filter @noesis/web build"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
