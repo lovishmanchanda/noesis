@@ -36,3 +36,23 @@ jobs:
         run: pip install -r packages/nodes-py/requirements-dev.txt
       - name: Run the Python tests
         run: python -m pytest packages/nodes-py
+
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Install dependencies
+        run: |
+          pip install -r packages/nodes-py/requirements.txt
+          npm install -g pnpm@12.18.0
+          pnpm install --frozen-lockfile
+      - name: Run the same pipelines natively and in the browser engine's runtime (Pyodide)
+        run: node packages/nodes-py/contract/run.mjs
+        env:
+          NOESIS_PYTHON: python

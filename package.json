@@ -18,13 +18,15 @@
     "test": "vitest run",
     "fixtures": "node fixtures/pipelines/generate.mjs",
     "check": "node scripts/check-links.mjs && tsc -p tsconfig.json && eslint . && prettier --check . && vitest run",
-    "test:py": "python -m pytest packages/nodes-py"
+    "test:py": "python -m pytest packages/nodes-py",
+    "contract": "node packages/nodes-py/contract/run.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
     "eslint": "^10.14.0",
     "json-schema-to-typescript": "^16.0.0",
     "prettier": "^3.9.10",
+    "pyodide": "314.0.7",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.1",
     "vitest": "^5.1.0"

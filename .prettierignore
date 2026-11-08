@@ -11,3 +11,6 @@ fixtures/pipelines/valid
 fixtures/pipelines/invalid
 fixtures/pipelines/manifest.json
 spike
+fixtures/contract/pipelines
+fixtures/contract/cases.json
+fixtures/data
