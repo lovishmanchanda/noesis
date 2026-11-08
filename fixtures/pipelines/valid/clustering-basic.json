@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "0.1",
+  "project": {
+    "name": "Golden example",
+    "seed": 42,
+    "mode": "guided"
+  },
+  "dataset": {
+    "source": {
+      "kind": "local-file",
+      "name": "example.csv"
+    },
+    "rows": 1000,
+    "columns": [
+      {
+        "name": "customer_id",
+        "dtype": "int",
+        "role": "exclude"
+      },
+      {
+        "name": "age",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "income",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "segment",
+        "dtype": "category",
+        "role": "reference"
+      }
+    ]
+  },
+  "task": {
+    "type": "clustering",
+    "primaryMetric": "silhouette"
+  },
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "load_csv",
+      "params": {}
+    },
+    {
+      "id": "n2",
+      "type": "split",
+      "inputs": [
+        "n1"
+      ],
+      "params": {
+        "strategy": {
+          "value": "none",
+          "source": "default"
+        },
+        "ratios": {
+          "value": [
+            1,
+            0,
+            0
+          ],
+          "source": "default"
+        }
+      }
+    },
+    {
+      "id": "n3",
+      "type": "scale",
+      "inputs": [
+        "n2"
+      ],
+      "fit_on": "train",
+      "params": {
+        "method": {
+          "value": "standard",
+          "source": "default"
+        }
+      }
+    },
+    {
+      "id": "n4",
+      "type": "model",
+      "inputs": [
+        "n3"
+      ],
+      "params": {
+        "algorithm": {
+          "value": "kmeans",
+          "source": "user"
+        },
+        "n_clusters": {
+          "value": 4,
+          "source": "suggested"
+        }
+      }
+    },
+    {
+      "id": "n5",
+      "type": "stability_check",
+      "inputs": [
+        "n4"
+      ],
+      "params": {}
+    }
+  ]
+}

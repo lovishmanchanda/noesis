@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "0.1",
+  "project": {
+    "name": "Golden example",
+    "seed": 42,
+    "mode": "guided"
+  },
+  "dataset": {
+    "source": {
+      "kind": "local-file",
+      "name": "example.csv"
+    },
+    "rows": 1000,
+    "columns": [
+      {
+        "name": "area",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "rooms",
+        "dtype": "int",
+        "role": "feature"
+      },
+      {
+        "name": "price",
+        "dtype": "float",
+        "role": "target"
+      }
+    ]
+  },
+  "task": {
+    "type": "regression",
+    "primaryMetric": "rmse"
+  },
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "load_csv",
+      "params": {}
+    },
+    {
+      "id": "n2",
+      "type": "split",
+      "inputs": [
+        "n1"
+      ],
+      "params": {
+        "ratios": {
+          "value": [
+            0.7,
+            0.15,
+            0.15
+          ],
+          "source": "default"
+        },
+        "strategy": {
+          "value": "random",
+          "source": "default"
+        }
+      }
+    },
+    {
+      "id": "n2b",
+      "type": "split",
+      "inputs": [
+        "n2"
+      ],
+      "params": {
+        "ratios": {
+          "value": [
+            0.7,
+            0.15,
+            0.15
+          ],
+          "source": "default"
+        },
+        "strategy": {
+          "value": "random",
+          "source": "default"
+        }
+      }
+    },
+    {
+      "id": "n3",
+      "type": "model",
+      "inputs": [
+        "n2b"
+      ],
+      "params": {
+        "algorithm": {
+          "value": "linear_regression",
+          "source": "user"
+        }
+      }
+    },
+    {
+      "id": "n4",
+      "type": "validate",
+      "inputs": [
+        "n3"
+      ],
+      "params": {
+        "method": {
+          "value": "kfold",
+          "source": "default"
+        },
+        "k": {
+          "value": 5,
+          "source": "default"
+        }
+      }
+    }
+  ]
+}

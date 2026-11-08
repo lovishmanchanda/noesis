@@ -1,0 +1,183 @@
+[
+  {
+    "file": "valid/regression-minimal.json",
+    "valid": true,
+    "expect": []
+  },
+  {
+    "file": "valid/classification-full.json",
+    "valid": true,
+    "expect": []
+  },
+  {
+    "file": "valid/classification-drop-text.json",
+    "valid": true,
+    "expect": []
+  },
+  {
+    "file": "valid/clustering-basic.json",
+    "valid": true,
+    "expect": []
+  },
+  {
+    "file": "invalid/missing-project.json",
+    "valid": false,
+    "expect": [
+      "E_SCHEMA"
+    ]
+  },
+  {
+    "file": "invalid/missing-fit-on.json",
+    "valid": false,
+    "expect": [
+      "E_SCHEMA"
+    ]
+  },
+  {
+    "file": "invalid/duplicate-id.json",
+    "valid": false,
+    "expect": [
+      "E_DUP_ID"
+    ]
+  },
+  {
+    "file": "invalid/unknown-input.json",
+    "valid": false,
+    "expect": [
+      "E_UNKNOWN_INPUT"
+    ]
+  },
+  {
+    "file": "invalid/cycle.json",
+    "valid": false,
+    "expect": [
+      "E_CYCLE"
+    ]
+  },
+  {
+    "file": "invalid/two-sources.json",
+    "valid": false,
+    "expect": [
+      "E_SOURCE_COUNT"
+    ]
+  },
+  {
+    "file": "invalid/no-split.json",
+    "valid": false,
+    "expect": [
+      "E_NO_SPLIT"
+    ]
+  },
+  {
+    "file": "invalid/two-splits.json",
+    "valid": false,
+    "expect": [
+      "E_MULTI_SPLIT"
+    ]
+  },
+  {
+    "file": "invalid/model-before-split.json",
+    "valid": false,
+    "expect": [
+      "E_MODEL_BEFORE_SPLIT"
+    ]
+  },
+  {
+    "file": "invalid/leak-impute-before-split.json",
+    "valid": false,
+    "expect": [
+      "E_LEAK"
+    ]
+  },
+  {
+    "file": "invalid/evaluation-without-model.json",
+    "valid": false,
+    "expect": [
+      "E_NO_MODEL_UPSTREAM"
+    ]
+  },
+  {
+    "file": "invalid/test-without-validate.json",
+    "valid": false,
+    "expect": [
+      "E_TEST_WITHOUT_VALIDATE"
+    ]
+  },
+  {
+    "file": "invalid/test-twice.json",
+    "valid": false,
+    "expect": [
+      "E_TEST_TWICE"
+    ]
+  },
+  {
+    "file": "invalid/test-feeds-back.json",
+    "valid": false,
+    "expect": [
+      "E_TEST_FEEDBACK"
+    ]
+  },
+  {
+    "file": "invalid/unencoded-text-to-model.json",
+    "valid": false,
+    "expect": [
+      "E_NON_NUMERIC_FEATURE"
+    ]
+  },
+  {
+    "file": "invalid/no-target.json",
+    "valid": false,
+    "expect": [
+      "E_TARGET"
+    ]
+  },
+  {
+    "file": "invalid/duplicate-column.json",
+    "valid": false,
+    "expect": [
+      "E_DUP_COLUMN"
+    ]
+  },
+  {
+    "file": "invalid/reference-in-supervised.json",
+    "valid": false,
+    "expect": [
+      "E_REFERENCE_ROLE"
+    ]
+  },
+  {
+    "file": "invalid/clustering-with-target.json",
+    "valid": false,
+    "expect": [
+      "E_TARGET_IN_CLUSTERING"
+    ]
+  },
+  {
+    "file": "invalid/clustering-with-test.json",
+    "valid": false,
+    "expect": [
+      "E_TEST_IN_CLUSTERING"
+    ]
+  },
+  {
+    "file": "invalid/stability-in-supervised.json",
+    "valid": false,
+    "expect": [
+      "E_TASK_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/split-ratios-sum.json",
+    "valid": false,
+    "expect": [
+      "E_SPLIT_RATIOS"
+    ]
+  },
+  {
+    "file": "invalid/split-none-supervised.json",
+    "valid": false,
+    "expect": [
+      "E_SPLIT_STRATEGY"
+    ]
+  }
+]
