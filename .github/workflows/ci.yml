@@ -24,3 +24,15 @@ jobs:
           git diff --exit-code packages/schema/src/generated
       - name: Check links, types, lint, format and tests
         run: pnpm check
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Install dependencies
+        run: pip install -r packages/nodes-py/requirements-dev.txt
+      - name: Run the Python tests
+        run: python -m pytest packages/nodes-py

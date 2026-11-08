@@ -17,7 +17,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "fixtures": "node fixtures/pipelines/generate.mjs",
-    "check": "node scripts/check-links.mjs && tsc -p tsconfig.json && eslint . && prettier --check . && vitest run"
+    "check": "node scripts/check-links.mjs && tsc -p tsconfig.json && eslint . && prettier --check . && vitest run",
+    "test:py": "python -m pytest packages/nodes-py"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

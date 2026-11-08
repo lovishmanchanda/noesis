@@ -32,7 +32,8 @@ The pnpm store is `.pnpm-store` (set in `.npmrc`). Both folders are git-ignored.
 ## Before you commit
 
 ```bash
-pnpm check          # links, types, lint, format and tests
+pnpm check          # links, types, lint, format and the TypeScript tests
+python -m pytest packages/nodes-py   # the Python step tests (use an environment with packages/nodes-py/requirements-dev.txt)
 pnpm fixtures       # rewrite the golden pipelines after changing fixtures/pipelines/generate.mjs
 pnpm --filter @noesis/schema generate   # regenerate types after changing the JSON Schema
 ```
