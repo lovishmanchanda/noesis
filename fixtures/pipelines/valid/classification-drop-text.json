@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "0.1",
+  "project": {
+    "name": "Golden example",
+    "seed": 42,
+    "mode": "guided"
+  },
+  "dataset": {
+    "source": {
+      "kind": "local-file",
+      "name": "example.csv"
+    },
+    "rows": 1000,
+    "columns": [
+      {
+        "name": "id",
+        "dtype": "int",
+        "role": "exclude"
+      },
+      {
+        "name": "area",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "city",
+        "dtype": "category",
+        "role": "feature"
+      },
+      {
+        "name": "label",
+        "dtype": "int",
+        "role": "target"
+      }
+    ]
+  },
+  "task": {
+    "type": "classification",
+    "primaryMetric": "f1"
+  },
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "load_csv",
+      "params": {}
+    },
+    {
+      "id": "n2",
+      "type": "split",
+      "inputs": [
+        "n1"
+      ],
+      "params": {
+        "ratios": {
+          "value": [
+            0.7,
+            0.15,
+            0.15
+          ],
+          "source": "default"
+        },
+        "strategy": {
+          "value": "random",
+          "source": "default"
+        }
+      }
+    },
+    {
+      "id": "n3",
+      "type": "drop_columns",
+      "inputs": [
+        "n2"
+      ],
+      "params": {
+        "columns": {
+          "value": [
+            "city"
+          ],
+          "source": "user"
+        }
+      }
+    },
+    {
+      "id": "n4",
+      "type": "model",
+      "inputs": [
+        "n3"
+      ],
+      "params": {
+        "algorithm": {
+          "value": "logistic_regression",
+          "source": "user"
+        }
+      }
+    },
+    {
+      "id": "n5",
+      "type": "validate",
+      "inputs": [
+        "n4"
+      ],
+      "params": {}
+    }
+  ]
+}

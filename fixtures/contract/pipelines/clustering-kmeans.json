@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "0.1",
+  "project": {
+    "name": "contract",
+    "seed": 42,
+    "mode": "guided"
+  },
+  "dataset": {
+    "source": {
+      "kind": "local-file",
+      "name": "data.csv"
+    },
+    "columns": [
+      {
+        "name": "customer_id",
+        "dtype": "int",
+        "role": "exclude"
+      },
+      {
+        "name": "age",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "income",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "spend",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "segment",
+        "dtype": "category",
+        "role": "reference"
+      }
+    ]
+  },
+  "task": {
+    "type": "clustering",
+    "primaryMetric": "rmse"
+  },
+  "nodes": [
+    {
+      "id": "n0",
+      "type": "load_csv",
+      "params": {}
+    },
+    {
+      "id": "n1",
+      "type": "split",
+      "inputs": [
+        "n0"
+      ],
+      "params": {
+        "strategy": {
+          "value": "none",
+          "source": "user"
+        },
+        "ratios": {
+          "value": [
+            1,
+            0,
+            0
+          ],
+          "source": "user"
+        }
+      }
+    },
+    {
+      "id": "n2",
+      "type": "scale",
+      "inputs": [
+        "n1"
+      ],
+      "params": {},
+      "fit_on": "train"
+    },
+    {
+      "id": "n3",
+      "type": "model",
+      "inputs": [
+        "n2"
+      ],
+      "params": {
+        "algorithm": {
+          "value": "kmeans",
+          "source": "user"
+        },
+        "n_clusters": {
+          "value": 4,
+          "source": "user"
+        }
+      }
+    },
+    {
+      "id": "n4",
+      "type": "stability_check",
+      "inputs": [
+        "n3"
+      ],
+      "params": {
+        "runs": {
+          "value": 4,
+          "source": "user"
+        }
+      }
+    }
+  ]
+}

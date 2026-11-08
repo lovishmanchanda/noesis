@@ -1,0 +1,16 @@
+node_modules
+.pnpm-store
+.local
+pnpm-lock.yaml
+docs
+experiments
+brand
+*.md
+**/generated/**
+fixtures/pipelines/valid
+fixtures/pipelines/invalid
+fixtures/pipelines/manifest.json
+spike
+fixtures/contract/pipelines
+fixtures/contract/cases.json
+fixtures/data

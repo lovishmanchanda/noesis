@@ -1,0 +1,9 @@
+# Pinned to the versions bundled with the browser engine (Pyodide 314.0.7), so results match.
+numpy==2.4.6
+pandas==3.0.2
+scikit-learn==1.8.0
+scipy==1.18.0
+xgboost==2.1.4
+pyarrow==22.0.0
+joblib==1.5.3
+threadpoolctl==3.6.0

@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "0.1",
+  "project": {
+    "name": "contract",
+    "seed": 42,
+    "mode": "guided"
+  },
+  "dataset": {
+    "source": {
+      "kind": "local-file",
+      "name": "data.csv"
+    },
+    "columns": [
+      {
+        "name": "id",
+        "dtype": "int",
+        "role": "exclude"
+      },
+      {
+        "name": "area",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "rooms",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "age",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "income",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "city",
+        "dtype": "category",
+        "role": "feature"
+      },
+      {
+        "name": "price",
+        "dtype": "float",
+        "role": "exclude"
+      },
+      {
+        "name": "expensive",
+        "dtype": "int",
+        "role": "target"
+      },
+      {
+        "name": "moved_in",
+        "dtype": "string",
+        "role": "exclude"
+      }
+    ]
+  },
+  "task": {
+    "type": "classification",
+    "primaryMetric": "rmse"
+  },
+  "nodes": [
+    {
+      "id": "n0",
+      "type": "load_csv",
+      "params": {}
+    },
+    {
+      "id": "n1",
+      "type": "split",
+      "inputs": [
+        "n0"
+      ],
+      "params": {
+        "strategy": {
+          "value": "stratified",
+          "source": "user"
+        }
+      }
+    },
+    {
+      "id": "n2",
+      "type": "impute",
+      "inputs": [
+        "n1"
+      ],
+      "params": {
+        "columns": {
+          "value": [
+            "age"
+          ],
+          "source": "user"
+        }
+      },
+      "fit_on": "train"
+    },
+    {
+      "id": "n3",
+      "type": "encode",
+      "inputs": [
+        "n2"
+      ],
+      "params": {
+        "columns": {
+          "value": [
+            "city"
+          ],
+          "source": "user"
+        }
+      },
+      "fit_on": "train"
+    },
+    {
+      "id": "n4",
+      "type": "scale",
+      "inputs": [
+        "n3"
+      ],
+      "params": {},
+      "fit_on": "train"
+    },
+    {
+      "id": "n5",
+      "type": "model",
+      "inputs": [
+        "n4"
+      ],
+      "params": {
+        "algorithm": {
+          "value": "logistic_regression",
+          "source": "user"
+        }
+      }
+    },
+    {
+      "id": "n6",
+      "type": "validate",
+      "inputs": [
+        "n5"
+      ],
+      "params": {
+        "method": {
+          "value": "kfold",
+          "source": "user"
+        },
+        "k": {
+          "value": 4,
+          "source": "user"
+        }
+      }
+    },
+    {
+      "id": "n7",
+      "type": "test",
+      "inputs": [
+        "n6"
+      ],
+      "params": {}
+    }
+  ]
+}

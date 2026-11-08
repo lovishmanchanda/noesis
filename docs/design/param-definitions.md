@@ -134,7 +134,7 @@ Target encoding is deliberately left out of v1: it needs nested cross-validation
 | `bins` | int | `5` | 2 to 100, `when kind == "bin"` | advanced |
 | `degree` | int | `2` | 2 to 5, `when kind == "polynomial"` | advanced |
 
-Row-wise calculations only (no statistics across rows), so no `fit_on`. Bin edges use fixed-width ranges from the train partition, so if quantile bins are added later this node needs `fit_on`.
+Row-wise calculations only (no statistics across rows), so no `fit_on`. Bin edges use fixed-width ranges from the train partition. The engine refuses the `bin` kind before the split (a leakage error), because the edges are learned from the training rows. If quantile bins are added later, the node will need `fit_on`.
 
 ### `select_features` (`fit_on: train`)
 | Param | Type | Default | Constraints | Level |
