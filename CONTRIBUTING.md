@@ -18,13 +18,26 @@ fix(nodes): pass class labels by keyword to partial_fit
 
 Add a body only when it explains something the diff cannot.
 
+## Setup
+
+Node 20.11 or newer and a conda environment for the Python parts. The JavaScript tooling uses pnpm 12. If pnpm is not installed on your machine, install it inside the repository so nothing leaves the folder:
+
+```bash
+mkdir -p .local/tools && npm install --prefix .local/tools pnpm
+.local/tools/node_modules/.bin/pnpm install
+```
+
+The pnpm store is `.pnpm-store` (set in `.npmrc`). Both folders are git-ignored.
+
 ## Before you commit
 
 ```bash
-node scripts/check-links.mjs     # every relative link in the Markdown files must resolve
+pnpm check          # links, types, lint, format and tests
+pnpm fixtures       # rewrite the golden pipelines after changing fixtures/pipelines/generate.mjs
+pnpm --filter @noesis/schema generate   # regenerate types after changing the JSON Schema
 ```
 
-More checks (lint, types, tests, contract tests) are added as the packages are built, and run in CI.
+CI runs the same checks.
 
 ## Rules of the design
 

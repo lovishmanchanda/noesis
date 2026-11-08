@@ -12,7 +12,7 @@ Status per row: **tested** (checked in the engine spike), **chosen** (decided he
 | Local storage | IndexedDB (metadata, runs) and Cache Storage (data, models) | tested | Quota was about 1.5 GB in the test browser; eviction rules in [hashing-and-runs.md](../design/hashing-and-runs.md) |
 | Cached tables | Feather with lz4 | tested | |
 | Pipeline file | JSON, checked by JSON Schema | chosen | [pipeline.schema.json](../../packages/schema/pipeline.schema.json) |
-| Front end | TypeScript, React, Vite | chosen | |
+| Front end | TypeScript 6.0, React, Vite | chosen | TypeScript is pinned to 6.0 because the lint tooling does not support 7 yet |
 | State | Zustand | chosen | The pipeline is plain data, so a small store is enough |
 | Charts | Observable Plot or D3 for most; canvas for dense scatter plots | open | Needs a quick test: 1,000-point scatter and a 64-unit network at smooth frame rate while the engine runs |
 | Node-graph editor (canvas mode, later) | React Flow | chosen | Not in v1 |
@@ -26,7 +26,7 @@ Status per row: **tested** (checked in the engine spike), **chosen** (decided he
 | Tests (front end) | Vitest, Playwright, axe for accessibility | chosen | |
 | Tests (Python nodes) | pytest | chosen | Same fixtures run in Pyodide and natively |
 | Hosting | static host that can set response headers (Cloudflare Pages, Netlify or Vercel) | open | Must support COOP and COEP and large static files |
-| Package managers | pnpm (JavaScript), conda environment (Python) | chosen | pnpm is not installed on the maintainer's Mac yet; install it when Phase 0 starts |
+| Package managers | pnpm 12 (JavaScript), conda environment (Python) | tested | pnpm is installed inside the repository (`.local/tools`) and its store is `.pnpm-store`, both git-ignored, so nothing is installed system-wide |
 
 ## Repository layout
 
