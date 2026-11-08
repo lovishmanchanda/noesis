@@ -20,6 +20,11 @@
     "expect": []
   },
   {
+    "file": "valid/inactive-settings-ignored.json",
+    "valid": true,
+    "expect": []
+  },
+  {
     "file": "invalid/missing-project.json",
     "valid": false,
     "expect": [
@@ -178,6 +183,48 @@
     "valid": false,
     "expect": [
       "E_SPLIT_STRATEGY"
+    ]
+  },
+  {
+    "file": "invalid/param-unknown.json",
+    "valid": false,
+    "expect": [
+      "E_PARAM_UNKNOWN"
+    ]
+  },
+  {
+    "file": "invalid/param-required-missing.json",
+    "valid": false,
+    "expect": [
+      "E_PARAM_REQUIRED"
+    ]
+  },
+  {
+    "file": "invalid/param-required-by-condition.json",
+    "valid": false,
+    "expect": [
+      "E_PARAM_REQUIRED"
+    ]
+  },
+  {
+    "file": "invalid/param-value-out-of-range.json",
+    "valid": false,
+    "expect": [
+      "E_PARAM_VALUE"
+    ]
+  },
+  {
+    "file": "invalid/param-column-missing.json",
+    "valid": false,
+    "expect": [
+      "E_PARAM_COLUMN"
+    ]
+  },
+  {
+    "file": "invalid/algorithm-wrong-task.json",
+    "valid": false,
+    "expect": [
+      "E_PARAM_VALUE"
     ]
   }
 ]

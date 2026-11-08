@@ -20,6 +20,7 @@ const base = (task, metric, columns, nodes) => ({
   nodes,
 });
 const clone = (x) => JSON.parse(JSON.stringify(x));
+const find0 = (p, id) => p.nodes.find((n) => n.id === id);
 const SPLIT = { ratios: param([0.7, 0.15, 0.15]), strategy: param('random') };
 
 const numeric = [
@@ -88,11 +89,16 @@ const clustering = base('clustering', 'silhouette', grouping, [
   node('n5', 'stability_check', ['n4'], {}),
 ]);
 
+const inactive = clone(classification);
+find0(inactive, 'n3').params.fillValue = param('x');
+find0(inactive, 'n3').params.knnNeighbors = param(9999);
+
 const valid = {
   'regression-minimal': regression,
   'classification-full': classification,
   'classification-drop-text': classificationDropText,
   'clustering-basic': clustering,
+  'inactive-settings-ignored': inactive,
 };
 
 const invalid = {};
@@ -192,6 +198,43 @@ mutate(
   ['E_SPLIT_STRATEGY'],
   regression,
   (p) => (find(p, 'n2').params.strategy = param('none')),
+);
+
+mutate(
+  'param-unknown',
+  ['E_PARAM_UNKNOWN'],
+  regression,
+  (p) => (find(p, 'n3').params.bogus = param(1)),
+);
+mutate(
+  'param-required-missing',
+  ['E_PARAM_REQUIRED'],
+  classification,
+  (p) => delete find(p, 'n3').params.columns,
+);
+mutate(
+  'param-required-by-condition',
+  ['E_PARAM_REQUIRED'],
+  classification,
+  (p) => (find(p, 'n3').params.strategy = param('constant')),
+);
+mutate(
+  'param-value-out-of-range',
+  ['E_PARAM_VALUE'],
+  classification,
+  (p) => (find(p, 'n6').params.n_estimators = param(5)),
+);
+mutate(
+  'param-column-missing',
+  ['E_PARAM_COLUMN'],
+  classification,
+  (p) => (find(p, 'n3').params.columns = param(['nope'])),
+);
+mutate(
+  'algorithm-wrong-task',
+  ['E_PARAM_VALUE'],
+  regression,
+  (p) => (find(p, 'n3').params.algorithm = param('kmeans')),
 );
 
 const write = (folder, name, data) => {

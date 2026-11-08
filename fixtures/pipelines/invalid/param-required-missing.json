@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "0.1",
+  "project": {
+    "name": "Golden example",
+    "seed": 42,
+    "mode": "guided"
+  },
+  "dataset": {
+    "source": {
+      "kind": "local-file",
+      "name": "example.csv"
+    },
+    "rows": 1000,
+    "columns": [
+      {
+        "name": "id",
+        "dtype": "int",
+        "role": "exclude"
+      },
+      {
+        "name": "area",
+        "dtype": "float",
+        "role": "feature"
+      },
+      {
+        "name": "city",
+        "dtype": "category",
+        "role": "feature"
+      },
+      {
+        "name": "label",
+        "dtype": "int",
+        "role": "target"
+      }
+    ]
+  },
+  "task": {
+    "type": "classification",
+    "primaryMetric": "f1"
+  },
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "load_csv",
+      "params": {}
+    },
+    {
+      "id": "n2",
+      "type": "split",
+      "inputs": [
+        "n1"
+      ],
+      "params": {
+        "ratios": {
+          "value": [
+            0.7,
+            0.15,
+            0.15
+          ],
+          "source": "default"
+        },
+        "strategy": {
+          "value": "stratified",
+          "source": "suggested"
+        }
+      }
+    },
+    {
+      "id": "n3",
+      "type": "impute",
+      "inputs": [
+        "n2"
+      ],
+      "fit_on": "train",
+      "params": {
+        "strategy": {
+          "value": "median",
+          "source": "suggested"
+        }
+      }
+    },
+    {
+      "id": "n4",
+      "type": "encode",
+      "inputs": [
+        "n3"
+      ],
+      "fit_on": "train",
+      "params": {
+        "columns": {
+          "value": [
+            "city"
+          ],
+          "source": "user"
+        },
+        "method": {
+          "value": "onehot",
+          "source": "default"
+        }
+      }
+    },
+    {
+      "id": "n5",
+      "type": "scale",
+      "inputs": [
+        "n4"
+      ],
+      "fit_on": "train",
+      "params": {
+        "method": {
+          "value": "standard",
+          "source": "default"
+        }
+      }
+    },
+    {
+      "id": "n6",
+      "type": "model",
+      "inputs": [
+        "n5"
+      ],
+      "params": {
+        "algorithm": {
+          "value": "random_forest",
+          "source": "user"
+        },
+        "n_estimators": {
+          "value": 200,
+          "source": "user"
+        }
+      }
+    },
+    {
+      "id": "n7",
+      "type": "validate",
+      "inputs": [
+        "n6"
+      ],
+      "params": {
+        "method": {
+          "value": "stratified_kfold",
+          "source": "default"
+        },
+        "k": {
+          "value": 5,
+          "source": "default"
+        }
+      }
+    },
+    {
+      "id": "n8",
+      "type": "test",
+      "inputs": [
+        "n7"
+      ],
+      "params": {}
+    },
+    {
+      "id": "n9",
+      "type": "export_model",
+      "inputs": [
+        "n8"
+      ],
+      "params": {
+        "format": {
+          "value": "bundle",
+          "source": "default"
+        }
+      }
+    }
+  ]
+}
