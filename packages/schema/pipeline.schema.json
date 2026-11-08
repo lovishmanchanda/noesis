@@ -90,12 +90,23 @@
         "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
         "type": {
           "enum": [
-            "load_csv", "drop_columns", "drop_duplicates", "filter_rows",
-            "impute", "handle_outliers",
-            "encode", "scale", "derive_feature", "select_features", "reduce_dimensions",
+            "load_csv",
+            "drop_columns",
+            "drop_duplicates",
+            "filter_rows",
+            "impute",
+            "handle_outliers",
+            "encode",
+            "scale",
+            "derive_feature",
+            "select_features",
+            "reduce_dimensions",
             "split",
-            "model", "tune",
-            "validate", "test", "stability_check",
+            "model",
+            "tune",
+            "validate",
+            "test",
+            "stability_check",
             "export_model"
           ]
         },
@@ -118,7 +129,18 @@
         },
         {
           "if": {
-            "properties": { "type": { "enum": ["impute", "handle_outliers", "encode", "scale", "select_features", "reduce_dimensions"] } }
+            "properties": {
+              "type": {
+                "enum": [
+                  "impute",
+                  "handle_outliers",
+                  "encode",
+                  "scale",
+                  "select_features",
+                  "reduce_dimensions"
+                ]
+              }
+            }
           },
           "then": { "required": ["fit_on"] }
         }
