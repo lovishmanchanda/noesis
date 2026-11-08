@@ -4,7 +4,7 @@
 
 A browser-based, no-code way to do what people usually do in notebooks: load a CSV, clean it, train a model, check it honestly, and export it. Your data stays on your computer. Suggestions for the next step come from explicit, explainable rules, and training is shown live as it happens.
 
-**Status:** planning and design are written down; one engine experiment has been run. The product itself is not built yet.
+**Status:** the design is written down and the first two build phases are done: the pipeline validator and the Python steps (Phase 0), and the web app with its first five screens (Phase 1: start, project, data, target, tidy and split, with autosave). Exploring, cleaning, modelling and exporting come next; see the [roadmap](docs/planning/roadmap.md).
 
 ## What it will do
 
