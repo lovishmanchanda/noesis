@@ -1,19 +1,20 @@
-# NOESIS: engine spike results (run 1, Mac only)
+# NOESIS: engine spike results (run 1 Mac, run 2 Windows)
 
 Plan: [spike-plan.md](spike-plan.md). Code and raw JSON: `experiments/engine-spike/` and `experiments/engine-spike/results/`. Reproduce with [experiments/engine-spike/README.md](../../experiments/engine-spike/README.md).
 
 ## Verdict
 
-**Go, with adjustments.** Pyodide (Python in WebAssembly) is fast enough for the v1 tabular workflow on this machine, live events work, and cancellation works. Two items missed their proposed criteria as written (warm start time, cancel for scikit-learn's MLP) and have concrete fixes. Run 1 covers one machine and one browser only, so this is a strong first signal, not a final answer.
+**Go, with adjustments.** Pyodide (Python in WebAssembly) is fast enough for the v1 tabular workflow on this machine, live events work, and cancellation works. Two items missed their proposed criteria as written (warm start time, cancel for scikit-learn's MLP) and have concrete fixes. Run 1 covers one machine and one browser only, so this is a strong first signal, not a final answer. Run 2 (Windows, Chrome and Edge, NVIDIA GPU) is summarised in [Run 2: Windows](#run-2-windows) and confirms the verdict, with a much slower start-up as the main new finding.
 
 ## What was and was not tested
 
 | Tested | Not tested yet |
 |---|---|
-| Mac: MacBook Air, Apple M2, 8 cores, 8 GB RAM, macOS 27.2 | Windows machine, NVIDIA GPU (CUDA) |
-| Chromium 152 (embedded browser), cross-origin isolated | Firefox, Safari |
-| Pyodide 314.0.7 (Python 3.14.2) with numpy 2.4.6, pandas 3.0.2, scikit-learn 1.8.0, scipy 1.18.0, XGBoost 2.1.4, pyarrow 22.0.0 | Real user datasets (only seeded synthetic data) |
-| Native baseline: same library versions, Python 3.14.10, in `experiments/engine-spike/.env` | The point where a big file fails (not reached, see E2) |
+| Mac: MacBook Air, Apple M2, 8 cores, 8 GB RAM, macOS 27.2 | Firefox, Safari |
+| Chromium 152 (embedded browser), cross-origin isolated | Real user datasets (only seeded synthetic data) |
+| Windows 11 laptop, Core Ultra 9 185H, 15.5 GB RAM, RTX 4060 (run 2): Chrome 157 and Edge 157 headless, native baseline, CUDA | Normal (not headless) Windows browser windows |
+| Pyodide 314.0.7 (Python 3.14.2) with numpy 2.4.6, pandas 3.0.2, scikit-learn 1.8.0, scipy 1.18.0, XGBoost 2.1.4, pyarrow 22.0.0 | The point where a big file fails (not reached, see E2) |
+| Native baseline: same library versions, Python 3.14.10, in `experiments/engine-spike/.env` | |
 
 **Noise warning.** The Mac was running other apps. The same load took 3.4 s once and 19–24 s when the machine was busy, and one random forest run varied from 31 s to 42 s. Numbers below are from calm runs unless marked. Each timing was run 1 to 3 times, not the 5 the plan asked for.
 
@@ -121,6 +122,29 @@ WebGPU is available in this browser (Apple GPU, Metal 3, 23 features including `
 
 E8 (browser matrix) covered Chromium only. E10 was not triggered because E2 passed.
 
+## Run 2: Windows
+
+Machine: Alienware laptop, Intel Core Ultra 9 185H (22 threads), 15.5 GB RAM, RTX 4060 Laptop GPU, Windows 11. Chrome 157 and Edge 157, both headless, plus native Python 3.14.7. Same Pyodide and library versions as run 1. Machine notes, deviations from the guide and raw JSON: [results-from-windows/](../../experiments/engine-spike/results-from-windows/MACHINE-NOTES.md). The machine was idle and plugged in for the runs and was set to performance power mode by the user. Windows Defender real-time scanning was on. Chrome and Edge numbers agree within about 10%, so Chrome values are quoted below unless stated.
+
+| Experiment | Windows result | Against the Mac run |
+|---|---|---|
+| **E1 load** | **Warm start 18.8–22.1 s** (Chrome), 18.0–19.4 s (Edge). Cold (no cache, local server) 17.7–21.6 s. Package loading about 8 s of it, Python imports 6.2–6.9 s. | **Fails the 5 s target by a wide margin.** About 2.6× slower than the calm Mac (7.3 s) and the same as the busy Mac (19–24 s). Cause not isolated: Defender scanning WebAssembly and package files is the leading suspect. |
+| E2 data scale | All five files pass. 100k × 50: read 0.87 s, profile 1.7 s, 196 MB heap. 1M × 50: read 8.4 s, profile 13.6 s, 1.3 GB heap. 1M rows with 10 columns: 4.2 s read. Longest frame gap at most 33 ms. | Same shape as the Mac; the 1M × 50 case works. |
+| E3 speed | Random forest 69.6 s (Chrome), 67.2 s (Edge); native one thread 50.4 s; ratio **1.4×**. XGBoost 10.8 s against 8.7 s native, **1.2×**. Logistic 2.9 s (5×), K-means 5.2 s (11×), MLP 44.9 s (4.9×), ridge 6.6 s (124×). Scores identical to the Mac's to every printed digit. | Browser times are about 1.5–2.6× the Mac's; the native baseline is also slower than the M2 (random forest 50 s against 24 s), so ratios to native are better than on the Mac. Both criteria models pass. |
+| E4 threads | Python sees 1 CPU out of 22 threads; starting a thread fails; `n_jobs=4` gives no speedup (5.96 s against 6.10 s). | Same as the Mac: single-threaded. |
+| E5 cancel | Interrupt stops pandas read, random forest, plain XGBoost and XGBoost with a callback in **26–57 ms** (Edge random forest 424 ms); the worker stays usable. The scikit-learn MLP loop was **not stopped in 116 s**. Terminate and restart: 5.9–6.0 s. | Same pattern as the Mac. The MLP exception holds on Windows, so the own-cancel-flag rule stands. Restart is inside the 8 s criterion here. |
+| E6 live events | MLP loop with events −3.9% (Chrome), −2.3% (Edge); XGBoost callback −1.0%; random forest warm start identical (difference 0); K-means stepped identical (inertia 8,737,743, 69 iterations). 20,000 events in 0.47 s. Longest frame gap 17 ms in every loop. | Pass. Same equivalence results as the Mac. The 6 s frame gaps seen on the Mac came from a throttled pane and do not appear here (headless page, idle machine). |
+| E7 storage | Feather lz4 31.4 MB, write 0.26 s, read 0.23 s. Cache Storage put 178 ms, get 61 ms; IndexedDB put 242 ms, get 113 ms. Quota 10.8 GB; `persist()` not granted. | Pass. Feather with lz4 stays the recommendation. Quota is much larger than on the Mac (1.56 GB), but it differs by browser and disk. |
+| E9 same code | Profile hash identical to the Mac (`5249abca…`); logistic 0.83, KNN 0.7265, random forest 0.811, all identical. | Identical to the Mac for this file. The 100k-file differences for tree and clustering models noted in E9 were not re-measured across engines. |
+| E11 GPU | XGBoost on 500k rows: CPU 14.3 s, **CUDA 6.6 s (2.2× faster)**, no errors, driver 616.56. | CUDA works on Windows with the pinned XGBoost 2.1.4. The speed-up is real but modest at this size, so GPU is worth offering through the companion, not worth a special effort. |
+
+### What run 2 changes
+
+1. **Start-up time is the main risk.** A new user on a typical Windows laptop may wait about 20 s the first time and again after the browser drops its cache. The loading screen and lazy loading are now required, not optional, and the first-load budget in the design should say 20 s on Windows. Next step: measure with Defender scanning excluded for the Pyodide folder, and with a real browser profile (not headless), to see whether this is scanning, headless mode or the CPU.
+2. **Everything else holds up.** Cancel, live events, storage, scale limits and same-code checks behave as on the Mac.
+3. **Browser results on Windows are not slower in a way that changes the design.** The weak spots are the same as on the Mac: dense linear algebra and the neural network, and no threads.
+4. **GPU via the companion is confirmed possible on NVIDIA/Windows**, with a 2× gain on a mid-size XGBoost job.
+
 ## Decision matrix outcome
 
 | Rule from the plan | Outcome |
@@ -144,8 +168,8 @@ E8 (browser matrix) covered Chromium only. E10 was not triggered because E2 pass
 
 ## Still to do
 
-- Run `experiments/engine-spike/` on the Windows machine (E1–E9), plus `gpu_bench.py` if it has an NVIDIA GPU.
-- Run Firefox and Safari (E8). The built-in browser only covers Chromium.
+- Find why Windows start-up is about 20 s: repeat E1 with Defender scanning excluded for the Pyodide folder, and in a normal (not headless) browser window.
+- Run Firefox and Safari (E8). Firefox is not installed on the Windows machine. The built-in browser only covers Chromium.
 - Find the real size limit (2–3M rows, the 4 GB cap).
 - Repeat timings 5 times on a quiet machine, and test with real throttled cold loads.
 - Real user datasets instead of synthetic ones.
