@@ -1,6 +1,6 @@
 # NOESIS: roadmap and improvements (draft 0.1)
 
-Companion to [tech-stack.md](../architecture/tech-stack.md). The design docs describe a lot. This file says what to build first, in what order, and what would make the product better than a notebook replacement.
+Companion to [tech-stack.md](../architecture/tech-stack.md) and [backlog.md](backlog.md), which lists every known limit, untested area and future item. The design docs describe a lot. This file says what to build first, in what order, and what would make the product better than a notebook replacement.
 
 ## Biggest risk to manage: scope
 
@@ -44,9 +44,9 @@ Chosen because each is common, easy to explain, and cheap to get right: D01, D03
 | 1. Data in | engine worker, loading screen, CSV import, profiling, screens 1 to 5 (Project, Data, Target, Tidy, Split), project save | a user can load a file and split it |
 | 2. Prepare | rule engine core, screens 6 to 8 (Explore, Missing values, Features), suggestions with preview and undo | cleaning and features work, suggestions apply cleanly |
 | 3. Train | screens 9 to 11 (Model, Train, Compare), event stream, live visuals for the MVP algorithms, cancel flag | live training with working cancel |
-| 4. Finish | screens 12 to 14 (Explain, Final test, Export), batch prediction, model card | complete flow end to end |
-| 5. Harden | accessibility, cross-browser, error states, performance budget, first-run experience, docs and help | beta-ready |
-| 6. Beta | real users and datasets, tune rule thresholds, fix what hurts | v1 release |
+| 4. Finish | screens 12 to 14 (Explain, Final test, Export), batch prediction, model card, notebook export; also from the backlog: persisting the result cache (B04), rules R10 and R11 (B10), the reproduce check (B25), the data quality summary (B34) | complete flow end to end |
+| 5. Harden | accessibility, cross-browser, error states, performance budget, first-run experience, docs and help; also from the backlog: the Windows start-up time (B01), Stop without isolation (B02), loading stages (B03), storage meter and multi-tab safety (B05), calibrating the memory guard on big files (B06), rows flowing through the pipeline strip (B09), interface polish (B13), Firefox, Safari and normal-window Windows runs (B20 to B22), end-to-end tests (B23) | beta-ready |
+| 6. Beta | real users and datasets, tune rule thresholds, fix what hurts; also from the backlog: the rule audit on public datasets (B24), deciding which unbuilt rules to add (B10), the decision log (B35) | v1 release |
 
 No dates are given because the team size and hours are not known yet.
 
