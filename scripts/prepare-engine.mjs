@@ -34,7 +34,7 @@ const add = (name) => {
   needed.add(key);
   for (const dep of lock.packages[key].depends ?? []) add(dep);
 };
-['numpy', 'pandas', 'scipy', 'scikit-learn', 'xgboost'].forEach(add);
+['numpy', 'pandas', 'scipy', 'scikit-learn', 'xgboost', 'pyarrow'].forEach(add);
 let downloaded = 0;
 for (const name of needed) {
   const file = lock.packages[name].file_name;

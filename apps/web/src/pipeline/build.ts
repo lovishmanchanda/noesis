@@ -1,3 +1,5 @@
+import { NODE_INFO } from '@noesis/registry';
+import { rankOf } from '@noesis/rules';
 import {
   validatePipeline,
   type Issue,
@@ -57,6 +59,21 @@ export function buildEarlyPipeline(project: ProjectState): Built {
   if (strategy === 'time' && split.timeColumn) params['timeColumn'] = user(split.timeColumn);
   add('split', params);
 
+  // Steps after the split, each where its kind belongs; steps of one kind keep the order they were added in.
+  const ordered = project.prepare
+    .map((step, index) => ({ step, index }))
+    .sort((a, b) => rankOf(a.step.type) - rankOf(b.step.type) || a.index - b.index);
+  for (const { step } of ordered) {
+    const previous = nodes[nodes.length - 1];
+    nodes.push({
+      id: step.id,
+      type: step.type,
+      ...(NODE_INFO[step.type].learns ? { fit_on: 'train' as const } : {}),
+      ...(previous ? { inputs: [previous.id] } : {}),
+      params: step.params,
+    });
+  }
+
   const pipeline: NOESISPipeline = {
     schemaVersion: '0.1',
     project: {
@@ -74,7 +91,7 @@ export function buildEarlyPipeline(project: ProjectState): Built {
         role: roles[c.name] ?? 'feature',
       })),
     },
-    task: { type: TASK_OF_GOAL[goal], primaryMetric: METRIC_OF_GOAL[goal] },
+    task: { type: TASK_OF_GOAL[goal], primaryMetric: project.metric ?? METRIC_OF_GOAL[goal] },
     nodes: nodes as NOESISPipeline['nodes'],
   };
   return { pipeline, issues: validatePipeline(pipeline).issues };

@@ -8,13 +8,16 @@ import { initialProject, type ProjectState } from '../state/project';
 export interface ProjectFile {
   noesisProject: 1;
   savedAt: string;
-  project: Pick<ProjectState, 'name' | 'topic' | 'goal' | 'roles' | 'tidy' | 'split' | 'seed'> & {
+  project: Pick<
+    ProjectState,
+    'name' | 'topic' | 'goal' | 'roles' | 'tidy' | 'split' | 'seed' | 'metric' | 'prepare'
+  > & {
     dataset: { name: string; settings: NonNullable<ProjectState['dataset']>['settings'] } | null;
   };
 }
 
 export function toProjectFile(state: ProjectState, now = new Date()): ProjectFile {
-  const { name, topic, goal, roles, tidy, split, seed, dataset } = state;
+  const { name, topic, goal, roles, tidy, split, seed, dataset, metric, prepare } = state;
   return {
     noesisProject: 1,
     savedAt: now.toISOString(),
@@ -26,6 +29,8 @@ export function toProjectFile(state: ProjectState, now = new Date()): ProjectFil
       tidy,
       split,
       seed,
+      metric,
+      prepare,
       dataset: dataset ? { name: dataset.name, settings: dataset.settings } : null,
     },
   };
@@ -74,6 +79,8 @@ export function projectFromFile(file: ProjectFile): {
     tidy: { ...base.tidy, ...p.tidy },
     split: { ...base.split, ...p.split },
     seed: typeof p.seed === 'number' ? p.seed : base.seed,
+    metric: typeof p.metric === 'string' ? p.metric : null,
+    prepare: Array.isArray(p.prepare) ? p.prepare : [],
     dataset: null,
   };
   // The project screen is done when a goal was chosen; the data must be added again.

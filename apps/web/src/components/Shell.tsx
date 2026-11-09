@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { screenDef } from '../screens';
 import { useUi } from '../state/ui';
 import { Stepper } from './Stepper';
+import { SuggestionsPanel } from './SuggestionsPanel';
 import { TopBar } from './TopBar';
 
 export interface ShellProps {
@@ -87,13 +88,7 @@ export function Shell({
           </div>
         </div>
       </main>
-      <aside className={`suggestions ${panelOpen ? 'open' : ''}`} aria-label="Suggestions">
-        <div className="stepper-title">Suggestions</div>
-        <p className="muted">
-          Nothing to suggest yet. Suggestions appear here as you work, each with the numbers behind
-          it.
-        </p>
-      </aside>
+      <SuggestionsPanel screen={screen} open={panelOpen} />
     </div>
   );
 }

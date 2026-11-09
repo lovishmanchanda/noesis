@@ -1,6 +1,6 @@
 import type { ScreenId } from '../screens';
 import { getOpenFile, openFile } from './actions';
-import { useProject, type ProjectState } from './project';
+import { initialProject, useProject, type ProjectState } from './project';
 import { browserKv, type Kv } from './storage';
 import { useUi } from './ui';
 import { create } from 'zustand';
@@ -35,6 +35,7 @@ export async function saveNow(): Promise<void> {
   useSave.setState({ status: 'saving' });
   try {
     const { name, topic, goal, dataset, roles, tidy, split, splitResult, seed } = project;
+    const { metric, prepare, dismissed } = project;
     const state: ProjectState = {
       name,
       topic,
@@ -45,6 +46,9 @@ export async function saveNow(): Promise<void> {
       split,
       splitResult,
       seed,
+      metric,
+      prepare,
+      dismissed,
     };
     const ui = useUi.getState();
     const saved: SavedProject = {
@@ -127,6 +131,11 @@ export async function restore(
     }
   }
   const { update } = useProject.getState();
-  update({ ...saved.project, dataset: useProject.getState().dataset ?? saved.project.dataset });
+  // Projects saved by an earlier version lack the newer fields; start those empty.
+  update({
+    ...initialProject(),
+    ...saved.project,
+    dataset: useProject.getState().dataset ?? saved.project.dataset,
+  });
   useUi.setState({ completed: saved.ui.completed, screen: saved.ui.screen });
 }

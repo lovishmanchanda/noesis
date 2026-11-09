@@ -13,6 +13,7 @@ export type Severity = 'info' | 'tip' | 'warn' | 'alert';
 
 /** The wizard stage a suggestion belongs to (the screen that shows it). */
 export type Stage =
+  | 'project'
   | 'data'
   | 'target'
   | 'tidy'

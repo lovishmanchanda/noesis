@@ -4,7 +4,7 @@ import type { DatasetProfile, EarlyRunResult, LoadSettings } from '@noesis/engin
 export type WorkerRequest =
   | { id: number; type: 'init'; interrupt: SharedArrayBuffer | null }
   | { id: number; type: 'openCsv'; name: string; bytes: ArrayBuffer; settings: LoadSettings }
-  | { id: number; type: 'runEarly'; pipeline: string };
+  | { id: number; type: 'runEarly'; pipeline: string; hashes: string };
 
 export type WorkerResult = DatasetProfile | EarlyRunResult | null;
 

@@ -1,4 +1,5 @@
 import { targetProblem } from '../pipeline/guess';
+import { names, notReady, unfilled } from '../screens/shared';
 import type { ScreenId } from '../screens';
 import type { ProjectState } from './project';
 
@@ -42,6 +43,22 @@ export function blockedReason(screen: ScreenId, p: ProjectState): string | undef
         return 'Choose the column that identifies each group.';
       if (p.split.strategy === 'time' && !p.split.timeColumn)
         return 'Choose the column that holds the time.';
+      return undefined;
+    }
+    case 'missing': {
+      if (!p.splitResult?.trainProfile) return 'Make the split first.';
+      const left = unfilled(p);
+      return left.length > 0
+        ? `${left.length} ${left.length === 1 ? 'column still has' : 'columns still have'} empty cells: ${names(left)}. Fill ${left.length === 1 ? 'it' : 'them'} or remove ${left.length === 1 ? 'it' : 'them'}.`
+        : undefined;
+    }
+    case 'features': {
+      if (!p.splitResult?.trainProfile) return 'Make the split first.';
+      const { text, empty } = notReady(p);
+      if (text.length > 0)
+        return `${text.length} ${text.length === 1 ? 'column is' : 'columns are'} still text or dates: ${names(text)}. A model needs numbers.`;
+      if (empty.length > 0)
+        return `${names(empty)} still ${empty.length === 1 ? 'has' : 'have'} empty cells.`;
       return undefined;
     }
     default:

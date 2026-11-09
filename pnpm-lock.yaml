@@ -199,6 +199,9 @@ importers:
       '@noesis/registry':
         specifier: workspace:*
         version: link:../../packages/registry
+      '@noesis/rules':
+        specifier: workspace:*
+        version: link:../../packages/rules
       '@noesis/schema':
         specifier: workspace:*
         version: link:../../packages/schema

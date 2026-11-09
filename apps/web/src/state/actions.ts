@@ -1,7 +1,7 @@
 import type { LoadSettings } from '@noesis/engine-client';
-import { buildEarlyPipeline } from '../pipeline/build';
 import { defaultRoles } from '../pipeline/guess';
 import { getEngine } from './engine';
+import { requestRun, setFileSource } from './run';
 import { DEFAULT_SPLIT, DEFAULT_TIDY, useProject, type DatasetInfo } from './project';
 import { useUi } from './ui';
 
@@ -61,11 +61,9 @@ export async function reloadWithSettings(settings: LoadSettings): Promise<void> 
   await openFile(openFileBytes, settings);
 }
 
-/** Runs the early steps for the current choices and stores the resulting part sizes. */
+/** Runs the steps for the current choices and stores the part sizes and the profiles. */
 export async function runSplit(): Promise<void> {
-  const { pipeline, issues } = buildEarlyPipeline(useProject.getState());
-  if (issues.length > 0)
-    throw new Error(issues[0]?.message ?? 'The choices do not make a valid pipeline');
-  const result = await getEngine().runEarly(JSON.stringify(pipeline));
-  useProject.setState({ splitResult: result });
+  await requestRun();
 }
+
+setFileSource(() => openFileBytes?.bytes ?? null);

@@ -18,6 +18,8 @@ import {
   type SavedProject,
 } from './state/persist';
 import { initialProject, useProject } from './state/project';
+import { useRun } from './state/run';
+import { useSuggestions } from './state/suggestions';
 import { useUi } from './state/ui';
 
 async function fetchSampleBytes(id: string): Promise<ArrayBuffer> {
@@ -45,6 +47,9 @@ export function App() {
   const project = useProject();
   const enginePhase = useEngine((s) => s.phase);
   const saveStatus = useSave((s) => s.status);
+  const running = useRun((r) => r.running);
+  const suggestions = useSuggestions();
+  const dismissed = project.dismissed;
 
   useEffect(() => {
     fetch('/samples/samples.json')
@@ -151,6 +156,9 @@ export function App() {
 
   const blocked = blockedReason(screen, project);
   const following = SCREENS[screenIndex(screen) + 1];
+  const topSuggestion = suggestions.find(
+    (x) => x.stage === screen && !x.alternativeTo && !dismissed.includes(x.fingerprint),
+  );
   const onNext = async (): Promise<void> => {
     if (blocked || busy) return;
     if (screen === 'split') {
@@ -175,17 +183,17 @@ export function App() {
       engineLabel={enginePhase === 'ready' ? 'Browser · CPU' : 'Engine starting'}
       onSaveFile={saveProjectFile}
       nextStep={
-        following?.available === false
+        (following?.available === false
           ? project.splitResult
-            ? 'The data is split and ready. The next steps (explore, missing values, features and the model) arrive in a later version.'
+            ? 'Your data is prepared. The model, training and the steps after it arrive in a later version.'
             : 'Next step: make the split. The steps after it arrive in a later version.'
           : following
             ? `Next step: ${following.title.toLowerCase()}`
-            : 'Last step'
+            : 'Last step') + (topSuggestion ? ` · Suggested: ${topSuggestion.message}` : '')
       }
       blocked={blocked}
       error={error}
-      busy={busy}
+      busy={busy || running}
       onNext={() => void onNext()}
     >
       {renderScreen(screen, samples, (s) => loadSample(s, false))}

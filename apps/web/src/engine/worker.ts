@@ -16,6 +16,25 @@ interface PyodideApi {
 const BASE = self.location.origin;
 let pyodide: PyodideApi | null = null;
 let queue: Promise<void> = Promise.resolve();
+/** Steps that need scikit-learn. The package is large, so it loads on first use, not at start-up. */
+const LEARNING_STEPS = [
+  'impute',
+  'handle_outliers',
+  'encode',
+  'scale',
+  'select_features',
+  'reduce_dimensions',
+];
+let learningLoaded = false;
+
+/** Loads the heavier packages the first time a pipeline needs them (scikit-learn, and pyarrow for the result cache). */
+async function ensurePackagesFor(pipelineJson: string): Promise<void> {
+  if (learningLoaded || !pyodide) return;
+  const nodes = (JSON.parse(pipelineJson) as { nodes: { type: string }[] }).nodes;
+  if (!nodes.some((n) => LEARNING_STEPS.includes(n.type))) return;
+  await pyodide.loadPackage(['scikit-learn', 'pyarrow']);
+  learningLoaded = true;
+}
 
 const post = (message: WorkerMessage): void => self.postMessage(message);
 
@@ -81,8 +100,12 @@ async function handle(request: WorkerRequest): Promise<void> {
         }),
       ) as WorkerResult;
     } else {
+      await ensurePackagesFor(request.pipeline);
       result = JSON.parse(
-        py('_out = session.run_early(_pipeline)', { _pipeline: request.pipeline }),
+        py('_out = session.run_early(_pipeline, _hashes)', {
+          _pipeline: request.pipeline,
+          _hashes: request.hashes,
+        }),
       ) as WorkerResult;
     }
     post({ type: 'result', id: request.id, result });
