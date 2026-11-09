@@ -266,6 +266,7 @@
           "help": "Rarer values are grouped as other. Leave empty for no limit."
         },
         "ordinalOrder": {
+          "ordered": true,
           "type": "map",
           "default": null,
           "when": { "param": "method", "equals": "ordinal" },
@@ -294,6 +295,7 @@
           "help": "Standard centres on zero. Min-max squeezes into a range. Robust ignores outliers."
         },
         "featureRange": {
+          "ordered": true,
           "type": "floats",
           "default": [0, 1],
           "when": { "param": "method", "equals": "minmax" },
@@ -444,6 +446,7 @@
       "label": "Split the data",
       "params": {
         "ratios": {
+          "ordered": true,
           "type": "floats",
           "default": [0.7, 0.15, 0.15],
           "level": "basic",
@@ -1063,6 +1066,7 @@
       "tasks": ["regression", "classification"],
       "params": {
         "hidden_layers": {
+          "ordered": true,
           "type": "ints",
           "default": [64, 32],
           "level": "basic",
