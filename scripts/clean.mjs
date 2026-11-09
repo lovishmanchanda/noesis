@@ -5,7 +5,8 @@
 //   node scripts/clean.mjs --deep --yes
 //
 // Run it after every phase. By default it keeps the working development setup (node_modules,
-// the package store, and the tools and Python environment in .local) so checks keep running;
+// the package store, the tools and Python environment in .local, and .local/ssh, the key and
+// helper scripts for reaching the Windows test machine) so checks keep running;
 // --deep removes those too, and they are recreated by the setup steps in CONTRIBUTING.md.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -75,11 +76,12 @@ for (const p of ['node_modules', 'public', 'data/out', '.env']) add(path.join(sp
 // Files the web app generates (recreated by `pnpm dev` or `pnpm build:web`)
 for (const p of ['pyodide', 'engine', 'samples']) add(path.join(root, 'apps/web/public', p));
 
-// Scratch files in .local (everything except the tools, the environment and the package cache)
+// Scratch files in .local (everything except the tools, the environment, the package cache and the Windows access)
 const local = path.join(root, '.local');
 if (fs.existsSync(local)) {
   for (const name of fs.readdirSync(local)) {
-    if (!['tools', 'env', 'pyodide-cache'].includes(name)) targets.add(path.join(local, name));
+    if (!['tools', 'env', 'pyodide-cache', 'ssh'].includes(name))
+      targets.add(path.join(local, name));
   }
 }
 
@@ -89,6 +91,7 @@ if (deep) {
     '.pnpm-store',
     '.local/tools',
     '.local/env',
+    '.local/ssh',
     '.local/pyodide-cache',
   ])
     add(path.join(root, p));
