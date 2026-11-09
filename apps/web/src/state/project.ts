@@ -46,6 +46,20 @@ export interface PrepareStep {
   params: Record<string, Param>;
 }
 
+/** The model chosen on the Model screen: an algorithm and its settings. */
+export interface ModelChoice {
+  algorithm: string;
+  /** Hyperparameters the user (or a preset) set. Everything else uses the registry default. */
+  params: Record<string, Param>;
+  preset: 'fast' | 'balanced' | 'accurate' | null;
+}
+
+/** How a model is checked while it is being chosen. The test rows are never used for this. */
+export interface ValidationChoice {
+  method: 'holdout' | 'kfold' | 'stratified_kfold';
+  k: number;
+}
+
 export interface ProjectState {
   name: string;
   topic: string;
@@ -62,6 +76,10 @@ export interface ProjectState {
   prepare: PrepareStep[];
   /** Fingerprints of suggestions the user dismissed. */
   dismissed: string[];
+  model: ModelChoice | null;
+  validation: ValidationChoice;
+  /** The run chosen on the Compare screen as the one to test and export. */
+  candidate: string | null;
 }
 
 export const DEFAULT_SPLIT: SplitChoices = {
@@ -89,6 +107,9 @@ export const initialProject = (): ProjectState => ({
   metric: null,
   prepare: [],
   dismissed: [],
+  model: null,
+  validation: { method: 'holdout', k: 5 },
+  candidate: null,
 });
 
 interface ProjectActions {
