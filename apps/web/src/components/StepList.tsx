@@ -4,6 +4,7 @@ import { shortHash } from '@noesis/schema';
 import { removeStep, setStepParam } from '../pipeline/prepare';
 import { useProject, type PrepareStep } from '../state/project';
 import { requestRun, useRun, useStepStatuses } from '../state/run';
+import { recordEdit } from '../state/suggestions';
 import { useUi } from '../state/ui';
 
 const MARKER: Record<string, string> = { default: 'default', user: 'you', suggested: 'suggestion' };
@@ -25,6 +26,7 @@ function Editor({
   value: unknown;
 }) {
   const change = (next: unknown): void => {
+    recordEdit(`Change “${spec.label}” in “${nodeSpec(step.type).label}”`);
     useProject.setState((p) => ({
       prepare: setStepParam(p.prepare, step.id, name, next as never),
     }));
@@ -146,6 +148,7 @@ export function StepList({ types }: { types?: PrepareStep['type'][] }) {
                 type="button"
                 className="quiet"
                 onClick={() => {
+                  recordEdit(`Remove “${nodeSpec(step.type).label}”`);
                   useProject.setState((p) => ({ prepare: removeStep(p.prepare, step.id) }));
                   void requestRun().catch(() => undefined);
                 }}

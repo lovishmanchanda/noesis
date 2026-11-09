@@ -4,7 +4,7 @@ import { count } from '../components/ui';
 import { TYPE_LABEL } from '../components/ColumnTable';
 import { setColumnStep, setWholeStep, stepFor } from '../pipeline/prepare';
 import { requestRun, useRun } from '../state/run';
-import { applyAction, applyPatchAs, useSuggestions } from '../state/suggestions';
+import { applyAction, applyPatchAs, recordEdit, useSuggestions } from '../state/suggestions';
 import { featureColumns, names, notReady, trainProfileOf } from './shared';
 
 const ENCODINGS = [
@@ -21,10 +21,13 @@ const SCALINGS = [
 ] as const;
 
 function edit(
+  label: string,
   fn: (
     p: ReturnType<typeof useProject.getState>['prepare'],
   ) => ReturnType<typeof useProject.getState>['prepare'],
 ): void {
+  recordEdit(label);
+  recordEdit(label);
   useProject.setState((s) => ({ prepare: fn(s.prepare) }));
   void requestRun().catch(() => undefined);
 }
@@ -42,12 +45,6 @@ export function FeaturesScreen() {
 
   const features = featureColumns(project);
   const text = features.filter((c) => c.dtype === 'category' || c.dtype === 'string');
-  const dates = profile.columns.filter(
-    (c) =>
-      c.dtype === 'datetime' &&
-      project.roles[c.name] !== 'target' &&
-      !project.tidy.dropColumns.includes(c.name),
-  );
   const hasParts = (name: string): boolean =>
     project.prepare.some(
       (s) =>
@@ -55,6 +52,13 @@ export function FeaturesScreen() {
         Array.isArray(s.params['sourceColumns']?.value) &&
         (s.params['sourceColumns']?.value as string[]).includes(name),
     );
+  const dates = profile.columns.filter(
+    (c) =>
+      c.dtype === 'datetime' &&
+      project.roles[c.name] !== 'target' &&
+      !project.tidy.dropColumns.includes(c.name) &&
+      ((project.roles[c.name] ?? 'feature') === 'feature' || hasParts(c.name)),
+  );
   const scale = String(
     project.prepare.find((s) => s.type === 'scale')?.params['method']?.value ?? '',
   );
@@ -154,13 +158,14 @@ export function FeaturesScreen() {
                           onChange={(e) => {
                             const v = e.target.value;
                             if (v === 'leave') {
+                              recordEdit(`Leave out “${c.name}”`);
                               useProject.setState((s) => ({
                                 roles: { ...s.roles, [c.name]: 'exclude' },
                                 prepare: setColumnStep(s.prepare, 'encode', c.name, null),
                               }));
                               void requestRun().catch(() => undefined);
                             } else
-                              edit((p) =>
+                              edit(`Turn “${c.name}” into numbers`, (p) =>
                                 setColumnStep(p, 'encode', c.name, v ? { method: v } : null),
                               );
                           }}
@@ -216,7 +221,7 @@ export function FeaturesScreen() {
             value={scale}
             disabled={running}
             onChange={(e) =>
-              edit((p) =>
+              edit('Change the scaling', (p) =>
                 setWholeStep(p, 'scale', e.target.value ? { method: e.target.value } : null),
               )
             }
@@ -241,7 +246,7 @@ export function FeaturesScreen() {
             checked={variance}
             disabled={running}
             onChange={(e) =>
-              edit((p) =>
+              edit('Change column selection', (p) =>
                 setWholeStep(
                   p,
                   'select_features',

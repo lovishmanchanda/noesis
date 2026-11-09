@@ -5,7 +5,7 @@ import { TYPE_LABEL } from '../components/ColumnTable';
 import { setColumnStep, stepFor } from '../pipeline/prepare';
 import { useProject } from '../state/project';
 import { requestRun, useRun } from '../state/run';
-import { applyAction, useSuggestions } from '../state/suggestions';
+import { applyAction, recordEdit, useSuggestions } from '../state/suggestions';
 import { featureColumns, trainProfileOf, unfilled } from './shared';
 
 const isNumber = (c: ColumnProfile): boolean => c.dtype === 'int' || c.dtype === 'float';
@@ -23,10 +23,12 @@ const FILL_TEXT = [
 ] as const;
 
 function edit(
+  label: string,
   fn: (
     prepare: ReturnType<typeof useProject.getState>['prepare'],
   ) => ReturnType<typeof useProject.getState>['prepare'],
 ): void {
+  recordEdit(label);
   useProject.setState((s) => ({ prepare: fn(s.prepare) }));
   void requestRun().catch(() => undefined);
 }
@@ -52,6 +54,7 @@ export function MissingScreen() {
 
   const setFill = (c: ColumnProfile, value: string): void => {
     if (value === 'remove') {
+      recordEdit(`Remove “${c.name}”`);
       useProject.setState((s) => ({
         prepare: setColumnStep(s.prepare, 'impute', c.name, null),
         tidy: { ...s.tidy, dropColumns: [...new Set([...s.tidy.dropColumns, c.name])] },
@@ -59,15 +62,16 @@ export function MissingScreen() {
       void requestRun().catch(() => undefined);
       return;
     }
-    if (value === '') return edit((p) => setColumnStep(p, 'impute', c.name, null));
+    if (value === '')
+      return edit(`Stop filling “${c.name}”`, (p) => setColumnStep(p, 'impute', c.name, null));
     const values: Record<string, unknown> =
       value === 'constant'
         ? { strategy: 'constant', fillValue: isNumber(c) ? 0 : 'missing' }
         : { strategy: value };
-    edit((p) => setColumnStep(p, 'impute', c.name, values));
+    edit(`Fill “${c.name}”`, (p) => setColumnStep(p, 'impute', c.name, values));
   };
   const setOutliers = (c: ColumnProfile, value: string): void =>
-    edit((p) =>
+    edit(`Extreme values in “${c.name}”`, (p) =>
       setColumnStep(
         p,
         'handle_outliers',

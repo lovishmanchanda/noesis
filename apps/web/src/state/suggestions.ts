@@ -82,6 +82,15 @@ async function commit(next: Editable, reload: boolean): Promise<void> {
   if (hadRun || reload) await requestRun();
 }
 
+/** Notes the current choices so one Undo can bring them back. Call it just before an edit. */
+export function recordEdit(label: string): void {
+  const before = editableOf(useProject.getState());
+  useHistory.setState((h) => ({
+    stack: [...h.stack, { label, before }].slice(-KEEP),
+    last: label,
+  }));
+}
+
 /** Applies a patch as one step that one Undo puts back. */
 export async function applyPatchAs(label: string, patch: PatchOp[]): Promise<void> {
   const project = useProject.getState();
