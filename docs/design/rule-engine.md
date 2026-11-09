@@ -44,7 +44,7 @@ Profile of data *as it arrives at a node* (after earlier cleaning) is computed l
 {
   id: "C04_high_missing",
   stage: "clean",                 // which wizard screen shows it
-  severity: "warn",               // info | tip | warn | error-advice
+  severity: "warn",               // info | tip | warn | alert
   appliesTo: ["regression", "classification", "clustering"],
   priority: 70,                   // higher = shown first
   evaluate(ctx) {                 // returns [] or one suggestion per target
@@ -89,6 +89,9 @@ A small closed set, so every suggestion is previewable and undoable:
 | `setParam` | Change one param on a node |
 | `removeNode` | Remove a node (inputs rewired) |
 | `setColumnRole` | Change a column's role (`feature`, `target`, `exclude`) |
+| `setMetric` | Change the primary metric (used by T04, which asks for F1 on a rare class) |
+
+A new step goes where its kind belongs, not necessarily right after the node named: steps that learn from data always land after the split, in a fixed order (fill, outliers, new features, encode, scale, select). A step added for more columns joins an existing step of the same kind and settings instead of creating a second one.
 
 Params set by a patch are stored with `source: "suggested"`. The user sees a before/after preview before confirming, and one Undo reverts the whole patch.
 

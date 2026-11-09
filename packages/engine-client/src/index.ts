@@ -26,6 +26,10 @@ export interface ColumnProfile {
   q1?: number | null;
   q3?: number | null;
   outliers?: number;
+  /** Correlation with the target (number columns), when the target is a number or has two classes. */
+  targetCorr?: number | null;
+  /** Correlation of a date column with the target: does the target drift over time? */
+  targetTrend?: number | null;
   histogram?: { counts: number[]; min: number | null; max: number | null };
   top?: { value: string; count: number }[];
 }
@@ -51,8 +55,13 @@ export interface DatasetProfile {
 /** Rows per part, and the profile of what the early steps produced. */
 export interface EarlyRunResult {
   rows: Record<string, number>;
-  /** After a split: the profile of the training rows only. */
+  /** After a split: the profile of the training rows right after the split, before any fill or encode. */
   trainProfile?: DatasetProfile;
+  /** The training rows as they leave the last step: what a model would receive. */
+  outputProfile?: DatasetProfile;
+  /** Which steps ran and which were loaded from the result cache. */
+  ran?: { executed: string[]; reused: string[] };
+  cache?: { entries: number; megabytes: number; format: string };
   /** Before a split: the profile of the single table. */
   profile?: DatasetProfile;
 }
@@ -82,8 +91,12 @@ export interface Engine {
     file: { name: string; bytes: ArrayBuffer },
     settings?: LoadSettings,
   ): Promise<DatasetProfile>;
-  /** Runs a pipeline of data steps on the open file. `pipeline` is the pipeline JSON. */
-  runEarly(pipeline: string): Promise<EarlyRunResult>;
+  /**
+   * Runs a pipeline of data and preparation steps on the open file. `pipeline` is the pipeline
+   * JSON. `hashes` maps each step id to its hash; steps whose result is cached under that hash
+   * are loaded instead of run.
+   */
+  runEarly(pipeline: string, hashes?: Record<string, string>): Promise<EarlyRunResult>;
   /** Asks the running job to stop. */
   cancel(): void;
   dispose(): void;

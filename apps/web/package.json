@@ -10,7 +10,8 @@
     "zustand": "^5.1.0",
     "@noesis/engine-client": "workspace:*",
     "@noesis/schema": "workspace:*",
-    "@noesis/registry": "workspace:*"
+    "@noesis/registry": "workspace:*",
+    "@noesis/rules": "workspace:*"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.3",

@@ -82,3 +82,32 @@ def test_session_needs_a_file_first():
     session.reset()
     with pytest.raises(ValueError, match="No file"):
         session.profile_current()
+
+
+def test_numeric_columns_report_how_they_relate_to_the_target():
+    rng = np.random.default_rng(0)
+    x = rng.normal(size=200)
+    frame = pd.DataFrame({"x": x, "copy": x * 2 + 1, "noise": rng.normal(size=200), "y": x * 3})
+    columns = {c["name"]: c for c in profile(frame, "y")["columns"]}
+    assert columns["copy"]["targetCorr"] > 0.999
+    assert abs(columns["noise"]["targetCorr"]) < 0.3
+    assert "targetCorr" not in columns["y"]
+
+
+def test_a_two_class_text_target_is_correlated_as_zero_and_one():
+    frame = pd.DataFrame({"score": list(range(40)), "label": ["no"] * 20 + ["yes"] * 20})
+    columns = {c["name"]: c for c in profile(frame, "label")["columns"]}
+    assert columns["score"]["targetCorr"] > 0.8
+
+
+def test_a_target_with_many_classes_has_no_correlations():
+    frame = pd.DataFrame({"a": range(30), "label": list("abc") * 10})
+    assert "targetCorr" not in profile(frame, "label")["columns"][0]
+
+
+def test_date_columns_report_a_trend_against_the_target():
+    days = pd.date_range("2024-01-01", periods=60).astype(str)
+    frame = pd.DataFrame({"day": days, "y": np.arange(60, dtype=float)})
+    columns = {c["name"]: c for c in profile(frame, "y")["columns"]}
+    assert columns["day"]["dtype"] == "datetime"
+    assert columns["day"]["targetTrend"] > 0.99

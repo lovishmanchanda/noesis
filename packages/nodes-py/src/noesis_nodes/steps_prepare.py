@@ -186,7 +186,14 @@ class Scaler:
 
 
 # --- feature selection and reduction ---------------------------------------------------------
-class Selector:
+class _Picklable:
+    """Fitted steps are cached with their results. The run context holds callbacks, so it stays out."""
+
+    def __getstate__(self) -> dict[str, Any]:
+        return {k: v for k, v in self.__dict__.items() if k != "ctx"}
+
+
+class Selector(_Picklable):
     def __init__(self, p: dict[str, Any], ctx: Ctx):
         self.p, self.ctx = p, ctx
         self.drop: list[str] = []
@@ -226,7 +233,7 @@ class Selector:
         return frame.drop(columns=self.drop)
 
 
-class Reducer:
+class Reducer(_Picklable):
     def __init__(self, p: dict[str, Any], ctx: Ctx):
         self.p, self.ctx = p, ctx
         self.columns: list[str] = []

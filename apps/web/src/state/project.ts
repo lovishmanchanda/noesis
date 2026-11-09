@@ -1,4 +1,5 @@
 import type { DatasetProfile, EarlyRunResult, LoadSettings } from '@noesis/engine-client';
+import type { Param } from '@noesis/schema';
 import { create } from 'zustand';
 
 export type Goal = 'number' | 'category' | 'groups';
@@ -26,6 +27,25 @@ export interface SplitChoices {
   timeColumn: string | null;
 }
 
+/** Step types that learn from the training rows and come after the split. */
+export const PREPARE_TYPES = [
+  'impute',
+  'handle_outliers',
+  'derive_feature',
+  'encode',
+  'scale',
+  'select_features',
+  'reduce_dimensions',
+] as const;
+export type PrepareType = (typeof PREPARE_TYPES)[number];
+
+/** A step the user added after the split. The builder puts it where its kind belongs. */
+export interface PrepareStep {
+  id: string;
+  type: PrepareType;
+  params: Record<string, Param>;
+}
+
 export interface ProjectState {
   name: string;
   topic: string;
@@ -36,6 +56,12 @@ export interface ProjectState {
   split: SplitChoices;
   splitResult: EarlyRunResult | null;
   seed: number;
+  /** The metric the model is judged by. Null means the default for the goal. */
+  metric: string | null;
+  /** Steps after the split: fill gaps, outliers, new columns, encodings, scaling, selection. */
+  prepare: PrepareStep[];
+  /** Fingerprints of suggestions the user dismissed. */
+  dismissed: string[];
 }
 
 export const DEFAULT_SPLIT: SplitChoices = {
@@ -60,6 +86,9 @@ export const initialProject = (): ProjectState => ({
   split: { ...DEFAULT_SPLIT },
   splitResult: null,
   seed: 42,
+  metric: null,
+  prepare: [],
+  dismissed: [],
 });
 
 interface ProjectActions {

@@ -35,6 +35,8 @@ export interface ParamSpec {
   max?: number;
   options?: unknown[];
   when?: Condition;
+  /** The order of the values matters (ratios, layer sizes). Other lists are treated as sets. */
+  ordered?: boolean;
   level: 'basic' | 'advanced';
   label: string;
   help: string;

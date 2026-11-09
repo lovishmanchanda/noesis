@@ -9,6 +9,17 @@ export { ISSUE_CODES, type Issue, type IssueCode, type ValidationResult } from '
 export { validateGraph } from './graph';
 export { validateParams } from './params';
 export { validateStructure } from './structure';
+export {
+  ENGINE_EPOCH,
+  canonicalJson,
+  datasetKey,
+  effectiveParams,
+  nodeHashes,
+  nodeStatuses,
+  sha256,
+  shortHash,
+  type NodeStatus,
+} from './hash';
 
 /**
  * Checks a pipeline file completely: first its shape, then the rules that need the whole graph.

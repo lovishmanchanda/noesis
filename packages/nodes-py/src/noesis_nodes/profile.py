@@ -130,6 +130,44 @@ def profile_target(series: pd.Series) -> dict[str, Any]:
     return out
 
 
+def _target_as_numbers(series: pd.Series) -> pd.Series | None:
+    """The target as numbers for correlations: numeric as is, two classes as 0 and 1, else None."""
+    if pd.api.types.is_bool_dtype(series):
+        return series.astype(float)
+    if pd.api.types.is_numeric_dtype(series):
+        return series.astype(float)
+    values = series.dropna().unique()
+    if len(values) == 2:
+        order = sorted(values, key=str)
+        return series.map({order[0]: 0.0, order[1]: 1.0})
+    return None
+
+
+def _correlation(a: pd.Series, b: pd.Series) -> float | None:
+    """Pearson correlation of two number series over the rows where both exist, or None."""
+    both = pd.concat([a, b], axis=1).dropna()
+    if len(both) < 10 or both.iloc[:, 0].nunique() < 2 or both.iloc[:, 1].nunique() < 2:
+        return None
+    return _clean(both.iloc[:, 0].corr(both.iloc[:, 1]))
+
+
+def _add_target_relations(columns: list[dict[str, Any]], frame: pd.DataFrame, target: str) -> None:
+    """Add `targetCorr` to number columns and `targetTrend` to date columns (see rules C12, S02)."""
+    numbers = _target_as_numbers(frame[target])
+    if numbers is None:
+        return
+    for info in columns:
+        name = info["name"]
+        if name == target:
+            continue
+        if info["dtype"] in ("int", "float"):
+            info["targetCorr"] = _correlation(frame[name].astype(float), numbers)
+        elif info["dtype"] == "datetime":
+            parsed = pd.to_datetime(frame[name], errors="coerce", format="mixed")
+            ticks = pd.Series(parsed.astype("int64").where(parsed.notna()), index=frame.index).astype(float)
+            info["targetTrend"] = _correlation(ticks, numbers)
+
+
 def profile(frame: pd.DataFrame, target: str | None = None) -> dict[str, Any]:
     """The profile of a table. `target`, if given and present, adds a description of that column."""
     rows = len(frame)
@@ -142,4 +180,5 @@ def profile(frame: pd.DataFrame, target: str | None = None) -> dict[str, Any]:
     }
     if target is not None and target in frame.columns:
         result["target"] = profile_target(frame[target])
+        _add_target_relations(result["columns"], frame, target)
     return result

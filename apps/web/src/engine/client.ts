@@ -77,8 +77,12 @@ export class BrowserEngine implements Engine {
     })) as DatasetProfile;
   }
 
-  async runEarly(pipeline: string): Promise<EarlyRunResult> {
-    return (await this.send({ type: 'runEarly', pipeline })) as EarlyRunResult;
+  async runEarly(pipeline: string, hashes: Record<string, string> = {}): Promise<EarlyRunResult> {
+    return (await this.send({
+      type: 'runEarly',
+      pipeline,
+      hashes: JSON.stringify(hashes),
+    })) as EarlyRunResult;
   }
 
   cancel(): void {
