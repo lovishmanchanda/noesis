@@ -3,18 +3,19 @@ import { applyPatch, type PatchOp } from '@noesis/rules';
 import type { NOESISPipeline, PipelineNode } from '@noesis/schema';
 import {
   PREPARE_TYPES,
+  type ModelChoice,
   type PrepareStep,
   type PrepareType,
   type ProjectState,
   type SplitChoices,
   type SplitStrategy,
 } from '../state/project';
-import { buildEarlyPipeline } from './build';
+import { buildTrainingPipeline } from './build';
 
 /** The part of a project that suggestions can change. Kept so one Undo can put it all back. */
 export type Editable = Pick<
   ProjectState,
-  'roles' | 'tidy' | 'split' | 'metric' | 'prepare' | 'dismissed'
+  'roles' | 'tidy' | 'split' | 'metric' | 'prepare' | 'dismissed' | 'model'
 > & { loadSettings: LoadSettings };
 
 export function editableOf(project: ProjectState): Editable {
@@ -25,6 +26,7 @@ export function editableOf(project: ProjectState): Editable {
     metric: project.metric,
     prepare: project.prepare,
     dismissed: project.dismissed,
+    model: project.model,
     loadSettings: project.dataset?.settings ?? {},
   };
 }
@@ -78,7 +80,19 @@ export function choicesFromPipeline(project: ProjectState, next: NOESISPipeline)
       params: n.params,
     }));
 
+  const modelNode = nodes.find((n) => n.type === 'model');
+  const model: ModelChoice | null = modelNode
+    ? {
+        algorithm: String(value(modelNode, 'algorithm') ?? ''),
+        params: Object.fromEntries(
+          Object.entries(modelNode.params).filter(([k]) => k !== 'algorithm'),
+        ),
+        preset: project.model?.preset ?? null,
+      }
+    : null;
+
   return {
+    model,
     roles: Object.fromEntries(next.dataset.columns.map((c) => [c.name, c.role])),
     tidy: {
       dropDuplicates: nodes.some((n) => n.type === 'drop_duplicates'),
@@ -109,7 +123,7 @@ export interface Applied {
 
 /** Applies a suggestion's patch to the project's pipeline and works out the new choices. */
 export function applyToProject(project: ProjectState, patch: PatchOp[]): Applied {
-  const { pipeline } = buildEarlyPipeline(project);
+  const { pipeline } = buildTrainingPipeline(project);
   const next = applyPatch(pipeline, patch);
   const changes = choicesFromPipeline(project, next);
   const before = project.dataset?.settings ?? {};

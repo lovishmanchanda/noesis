@@ -72,13 +72,13 @@ export const SCREENS: ScreenDef[] = [
     purpose: 'Turn text into numbers and scale the columns.',
     available: true,
   },
-  { id: 'model', title: 'Model', purpose: 'Choose how to learn from the data.', available: false },
-  { id: 'train', title: 'Train', purpose: 'Watch the model learn.', available: false },
+  { id: 'model', title: 'Model', purpose: 'Choose how to learn from the data.', available: true },
+  { id: 'train', title: 'Train', purpose: 'Watch the model learn.', available: true },
   {
     id: 'compare',
     title: 'Compare',
     purpose: 'Compare runs and tune the settings.',
-    available: false,
+    available: true,
   },
   {
     id: 'explain',
