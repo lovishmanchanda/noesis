@@ -1,0 +1,73 @@
+{
+  "experiment": "e6",
+  "port": "8083",
+  "seconds": 167,
+  "result": {
+    "mlp_without_events": {
+      "s": 33.99,
+      "epochs": 15,
+      "score": 0.8288
+    },
+    "mlp_with_events": {
+      "s": 33.212,
+      "epochs": 15,
+      "score": 0.8288
+    },
+    "mlp_jank": {
+      "maxFrameGapMs": 17,
+      "frames": 2010,
+      "maxTimerDriftMs": 2
+    },
+    "mlp_events": {
+      "count": 30,
+      "bytes": 67171
+    },
+    "mlp_overhead_pct": -2.3,
+    "mlp_fit_equivalence": {
+      "s": 33.061,
+      "epochs": 15,
+      "score": 0.8296
+    },
+    "rf_warm_start": {
+      "trees": 40,
+      "warm_s": 9.279,
+      "one_shot_s": 9.102,
+      "max_abs_proba_diff": 0,
+      "identical": true
+    },
+    "rf_jank": {
+      "maxFrameGapMs": 17,
+      "frames": 1156,
+      "maxTimerDriftMs": 2
+    },
+    "rf_events": 40,
+    "xgb_callback": {
+      "rounds": 100,
+      "plain_s": 11.413,
+      "callback_s": 11.381,
+      "overhead_pct": -0.3,
+      "same_predictions": true
+    },
+    "xgb_events": 100,
+    "kmeans_stepwise": {
+      "normal_inertia": 8737743,
+      "normal_iters": 69,
+      "stepped_inertia": 8737743,
+      "stepped_iters": 69,
+      "stepped_s": 4.486,
+      "relative_inertia_diff": 0
+    },
+    "kmeans_events": 69,
+    "event_rate": {
+      "sent": 20000,
+      "worker_s": 0.474,
+      "received": 20000,
+      "main_wall_ms": 479,
+      "jank": {
+        "maxFrameGapMs": 17,
+        "frames": 30,
+        "maxTimerDriftMs": 0
+      }
+    }
+  }
+}

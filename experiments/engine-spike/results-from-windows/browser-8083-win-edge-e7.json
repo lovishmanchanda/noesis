@@ -1,0 +1,63 @@
+{
+  "experiment": "e7",
+  "port": "8083",
+  "seconds": 19,
+  "result": {
+    "load": {
+      "rows": 100000,
+      "features": 67,
+      "s": 1.295
+    },
+    "arrow": {
+      "from_pandas_s": 0.054,
+      "feather_uncompressed": {
+        "bytes": 42846082,
+        "write_s": 0.116,
+        "read_s": 0.252,
+        "rows": 100000
+      },
+      "feather_lz4": {
+        "bytes": 31371338,
+        "write_s": 0.3,
+        "read_s": 0.241,
+        "rows": 100000
+      },
+      "feather_zstd": {
+        "bytes": 28909954,
+        "write_s": 0.392,
+        "read_s": 0.327,
+        "rows": 100000
+      },
+      "parquet_snappy": {
+        "bytes": 31518167,
+        "write_s": 0.653,
+        "read_s": 0.474,
+        "rows": 100000
+      },
+      "parquet_zstd": {
+        "bytes": 29983959,
+        "write_s": 0.746,
+        "read_s": 0.371,
+        "rows": 100000
+      }
+    },
+    "storage": {
+      "bytes": 42846082,
+      "cache_put_ms": 204,
+      "cache_get_ms": 64,
+      "cache_ok": true,
+      "idb_put_ms": 265,
+      "idb_get_ms": 120,
+      "idb_ok": true
+    },
+    "persistGranted": false,
+    "estimate": {
+      "quota": 10780266970,
+      "usage": 42848730,
+      "usageDetails": {
+        "caches": 42846464,
+        "indexedDB": 2266
+      }
+    }
+  }
+}

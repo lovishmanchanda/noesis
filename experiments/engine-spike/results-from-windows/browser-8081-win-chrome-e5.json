@@ -1,0 +1,11 @@
+{
+  "experiment": "e5",
+  "port": "8081",
+  "seconds": 10,
+  "result": {
+    "crossOriginIsolated": false,
+    "interruptAvailable": false,
+    "cases": [],
+    "terminate_and_restart_ms": 6528
+  }
+}

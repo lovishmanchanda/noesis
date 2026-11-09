@@ -1,0 +1,18 @@
+{
+  "label": "win-desktop",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "xgboost": "2.1.4",
+  "nvidia_smi": "NVIDIA GeForce RTX 4060 Laptop GPU, 8188 MiB, 616.56",
+  "runs": [
+    {
+      "device": "cpu",
+      "rows": 500000,
+      "fit_s": 14.348
+    },
+    {
+      "device": "cuda",
+      "rows": 500000,
+      "fit_s": 6.597
+    }
+  ]
+}

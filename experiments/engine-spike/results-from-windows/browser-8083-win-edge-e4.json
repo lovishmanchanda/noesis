@@ -1,0 +1,19 @@
+{
+  "experiment": "e4",
+  "port": "8083",
+  "seconds": 34,
+  "result": {
+    "hardwareConcurrency": 22,
+    "crossOriginIsolated": true,
+    "python": {
+      "os_cpu_count": 1,
+      "threads_active": 1,
+      "rf_n_jobs_1_s": 6.034,
+      "xgb_n_jobs_1_s": 2.359,
+      "rf_n_jobs_4_s": 5.869,
+      "xgb_n_jobs_4_s": 2.209,
+      "joblib_n_jobs_2": "ok",
+      "thread_start": "RuntimeError(\"can't start new thread\")"
+    }
+  }
+}

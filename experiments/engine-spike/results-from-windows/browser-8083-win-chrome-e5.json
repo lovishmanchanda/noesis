@@ -1,0 +1,71 @@
+{
+  "experiment": "e5",
+  "port": "8083",
+  "seconds": 237,
+  "result": {
+    "crossOriginIsolated": true,
+    "interruptAvailable": true,
+    "cases": [
+      {
+        "case": "read",
+        "import_s": 6.701,
+        "ran_before_cancel_ms": 4001,
+        "cancel_to_stop_ms": 37,
+        "outcome": {
+          "error": "KeyboardInterrupt: Traceback (most recent call last):\n  File \"pandas/_libs/parsers.pyx\", line 1067, in pandas._libs.parsers.TextReader._convert_tokens\n  File \"pandas/_libs/parsers.pyx\", line 1177, in pandas._libs.parsers.TextReader._convert_with_dtype\n  File \"pandas/_libs/parsers.pyx\", line 1837, in pandas._libs.parsers._try_int64\nValueError: Number is not int\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"<exec>\", line 1, in <module>\n  File \"/py/exp.py\", line 112, in e5_job\n    nodes.load(\"/tmp/big.csv\")\n    ~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"/py/nodes.py\", line 18, in load\n    return pd.read_csv(path, usecols=usecols, nrows=nrows)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/pandas/io/parsers/readers.py\", line 873, in read_csv\n    return _read(filepath_or_buffer, kwds)\n  File \"/lib/python3.14/site-packages/pandas/io/parsers/readers.py\", line 306, in _read\n    return parser.read(nrows)\n           ~~~~~~~~~~~^^^^^^^\n  File \"/lib/python3.14/site-packages/pandas/io/parsers/readers.py\", line 1947, in read\n    ) = self._engine.read(  # type: ignore[attr-defined]\n        ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+        },
+        "stopped_by_interrupt": true,
+        "finished_normally": false,
+        "worker_usable_after": true
+      },
+      {
+        "case": "rf",
+        "import_s": 7.012,
+        "ran_before_cancel_ms": 4002,
+        "cancel_to_stop_ms": 34,
+        "outcome": {
+          "error": "KeyboardInterrupt: Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"<exec>\", line 1, in <module>\n  File \"/py/exp.py\", line 115, in e5_job\n    RandomForestClassifier(n_estimators=400, max_depth=12, n_jobs=1, random_state=0).fit(Xtr, ytr)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/sklearn/base.py\", line 1336, in wrapper\n    return fit_method(estimator, *args, **kwargs)\n  File \"/lib/python3.14/site-packages/sklearn/ensemble/_forest.py\", line 486, in fit\n    trees = Parallel(\n    ...<2 lines>...\n        prefer=\"threads\",\n    )(\n        delayed(_parallel_build_trees)(\n    ...<12 lines>...\n        for i, t in enumerate(trees)\n    )\n  File \"/lib/python3.14/site-packages/sklearn/utils/parallel.py\", line 91, in __call__\n    return super().__call__(iterable_with_config_and_warning_filters)\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/joblib/parallel.py\", line 1986, in __call__\n    return output if self.return_generator else list(output)\n                                                ~~~~^^^^^^^^\n  File \"/lib/python3.14/site-packages/joblib/parallel.py\", line 1914, in _get_sequential_output\n"
+        },
+        "stopped_by_interrupt": true,
+        "finished_normally": false,
+        "worker_usable_after": true
+      },
+      {
+        "case": "xgb_plain",
+        "import_s": 6.306,
+        "ran_before_cancel_ms": 4008,
+        "cancel_to_stop_ms": 40,
+        "outcome": {
+          "error": "KeyboardInterrupt: Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"<exec>\", line 1, in <module>\n  File \"/py/exp.py\", line 125, in e5_job\n    callbacks=[Cb()] if case == \"xgb_cb\" else None).fit(Xtr, ytr)\n                                                    ~~~^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/xgboost/core.py\", line 726, in inner_f\n    return func(**kwargs)\n  File \"/lib/python3.14/site-packages/xgboost/sklearn.py\", line 1599, in fit\n    self._Booster = train(\n                    ~~~~~^\n        params,\n        ^^^^^^^\n    ...<9 lines>...\n        callbacks=self.callbacks,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python3.14/site-packages/xgboost/core.py\", line 726, in inner_f\n    return func(**kwargs)\n  File \"/lib/python3.14/site-packages/xgboost/training.py\", line 181, in train\n    bst.update(dtrain, iteration=i, fobj=obj)\n    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/xgboost/core.py\", line 2097, in update\n    self._assign_dmatrix_features(dtrain)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^\n  File \"/lib/python3.14/site-packages/xgboost/core.py\", line 3037, in _assign_dmatrix_features\n    ft = data.feature_types\n         ^^^^^^^^^^^^^^^^^^\n  File \"/lib/python3.14/site-pack"
+        },
+        "stopped_by_interrupt": true,
+        "finished_normally": false,
+        "worker_usable_after": true
+      },
+      {
+        "case": "xgb_cb",
+        "import_s": 6.475,
+        "ran_before_cancel_ms": 4012,
+        "cancel_to_stop_ms": 45,
+        "outcome": {
+          "error": "KeyboardInterrupt: Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"<exec>\", line 1, in <module>\n  File \"/py/exp.py\", line 125, in e5_job\n    callbacks=[Cb()] if case == \"xgb_cb\" else None).fit(Xtr, ytr)\n                                                    ~~~^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/xgboost/core.py\", line 726, in inner_f\n    return func(**kwargs)\n  File \"/lib/python3.14/site-packages/xgboost/sklearn.py\", line 1599, in fit\n    self._Booster = train(\n                    ~~~~~^\n        params,\n        ^^^^^^^\n    ...<9 lines>...\n        callbacks=self.callbacks,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python3.14/site-packages/xgboost/core.py\", line 726, in inner_f\n    return func(**kwargs)\n  File \"/lib/python3.14/site-packages/xgboost/training.py\", line 181, in train\n    bst.update(dtrain, iteration=i, fobj=obj)\n    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/xgboost/core.py\", line 2101, in update\n    _LIB.XGBoosterUpdateOneIter(\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^\n        self.handle, ctypes.c_int(iteration), dtrain.handle\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\nKeyboardInterrupt\n"
+        },
+        "stopped_by_interrupt": true,
+        "finished_normally": false,
+        "worker_usable_after": true
+      },
+      {
+        "case": "mlp_loop",
+        "import_s": 6.42,
+        "ran_before_cancel_ms": 4013,
+        "cancel_to_stop_ms": 115993,
+        "outcome": {
+          "error": "timeout after 120000 ms"
+        },
+        "stopped_by_interrupt": false,
+        "finished_normally": false
+      }
+    ],
+    "terminate_and_restart_ms": 5946
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "experiment": "e2",
+  "port": "8083",
+  "seconds": 103,
+  "result": [
+    {
+      "file": "d10k_20",
+      "variant": "full",
+      "csv_mb": 1.4,
+      "fetch_ms": 6,
+      "rows": 10000,
+      "cols": 20,
+      "read_s": 0.079,
+      "profile_s": 0.213,
+      "frame_mb": 2.7,
+      "wasm_heap_mb": 113,
+      "ok": true,
+      "jank": {
+        "maxFrameGapMs": 96,
+        "frames": 279,
+        "maxTimerDriftMs": 1
+      }
+    },
+    {
+      "file": "d100k_20",
+      "variant": "full",
+      "csv_mb": 14,
+      "fetch_ms": 46,
+      "rows": 100000,
+      "cols": 20,
+      "read_s": 0.38,
+      "profile_s": 0.757,
+      "frame_mb": 27.1,
+      "wasm_heap_mb": 136,
+      "ok": true,
+      "jank": {
+        "maxFrameGapMs": 17,
+        "frames": 521,
+        "maxTimerDriftMs": 2
+      }
+    },
+    {
+      "file": "d100k_50",
+      "variant": "full",
+      "csv_mb": 36.9,
+      "fetch_ms": 113,
+      "rows": 100000,
+      "cols": 50,
+      "read_s": 0.869,
+      "profile_s": 1.681,
+      "frame_mb": 51.1,
+      "wasm_heap_mb": 196,
+      "ok": true,
+      "jank": {
+        "maxFrameGapMs": 17,
+        "frames": 606,
+        "maxTimerDriftMs": 2
+      }
+    },
+    {
+      "file": "d500k_50",
+      "variant": "full",
+      "csv_mb": 184.8,
+      "fetch_ms": 632,
+      "rows": 500000,
+      "cols": 50,
+      "read_s": 3.835,
+      "profile_s": 6.409,
+      "frame_mb": 255.7,
+      "wasm_heap_mb": 584,
+      "ok": true,
+      "jank": {
+        "maxFrameGapMs": 17,
+        "frames": 1171,
+        "maxTimerDriftMs": 2
+      }
+    },
+    {
+      "file": "d1000k_50",
+      "variant": "full",
+      "csv_mb": 369.8,
+      "fetch_ms": 1145,
+      "rows": 1000000,
+      "cols": 50,
+      "read_s": 8.423,
+      "profile_s": 13.592,
+      "frame_mb": 511.5,
+      "wasm_heap_mb": 1316,
+      "ok": true,
+      "jank": {
+        "maxFrameGapMs": 17,
+        "frames": 1936,
+        "maxTimerDriftMs": 16
+      }
+    },
+    {
+      "file": "d1000k_50",
+      "variant": "sample100k",
+      "csv_mb": 369.8,
+      "fetch_ms": 1187,
+      "rows": 100000,
+      "cols": 50,
+      "read_s": 0.855,
+      "profile_s": 1.751,
+      "frame_mb": 51.1,
+      "wasm_heap_mb": 196,
+      "ok": true,
+      "jank": {
+        "maxFrameGapMs": 17,
+        "frames": 699,
+        "maxTimerDriftMs": 3
+      }
+    },
+    {
+      "file": "d1000k_50",
+      "variant": "usecols10",
+      "csv_mb": 369.8,
+      "fetch_ms": 1138,
+      "rows": 1000000,
+      "cols": 10,
+      "read_s": 4.235,
+      "profile_s": 2.657,
+      "frame_mb": 107,
+      "wasm_heap_mb": 338,
+      "ok": true,
+      "jank": {
+        "maxFrameGapMs": 33,
+        "frames": 946,
+        "maxTimerDriftMs": 32
+      }
+    }
+  ]
+}

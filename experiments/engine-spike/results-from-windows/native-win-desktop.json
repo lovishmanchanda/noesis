@@ -1,0 +1,191 @@
+{
+  "label": "win-desktop",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "cpu_count": 22,
+  "versions": {
+    "python": "3.14.7",
+    "numpy": "2.4.6",
+    "pandas": "3.0.2",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.18.0",
+    "xgboost": "2.1.4",
+    "pyarrow": "22.0.0"
+  },
+  "e2": [
+    {
+      "file": "d10k_20",
+      "read_s": 0.024,
+      "profile_s": 0.033,
+      "frame_mb": 1.9
+    },
+    {
+      "file": "d100k_20",
+      "read_s": 0.151,
+      "profile_s": 0.185,
+      "frame_mb": 18.7
+    },
+    {
+      "file": "d100k_50",
+      "read_s": 0.345,
+      "profile_s": 0.553,
+      "frame_mb": 42.7
+    },
+    {
+      "file": "d500k_50",
+      "read_s": 3.659,
+      "profile_s": 5.672,
+      "frame_mb": 213.4
+    },
+    {
+      "file": "d1000k_50",
+      "read_s": 7.306,
+      "profile_s": 12.548,
+      "frame_mb": 426.9
+    }
+  ],
+  "e3": {
+    "single_thread": [
+      {
+        "model": "logistic",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.552,
+        "predict_s": 0.007,
+        "score": 0.83735
+      },
+      {
+        "model": "ridge",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.053,
+        "predict_s": 0.002,
+        "score": 0.832427
+      },
+      {
+        "model": "knn",
+        "n_jobs": 1,
+        "rows_train": 20000,
+        "features": 67,
+        "fit_s": 0.003,
+        "predict_s": 1.604,
+        "score": 0.6305
+      },
+      {
+        "model": "kmeans",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.491,
+        "predict_s": 0.002,
+        "score": 14068540.0
+      },
+      {
+        "model": "random_forest",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 50.354,
+        "predict_s": 0.394,
+        "score": 0.82125
+      },
+      {
+        "model": "xgboost",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 8.742,
+        "predict_s": 0.156,
+        "score": 0.8267
+      },
+      {
+        "model": "mlp",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 9.137,
+        "predict_s": 0.01,
+        "score": 0.8262
+      }
+    ],
+    "all_threads": [
+      {
+        "model": "logistic",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.558,
+        "predict_s": 0.006,
+        "score": 0.83735
+      },
+      {
+        "model": "ridge",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.042,
+        "predict_s": 0.002,
+        "score": 0.832427
+      },
+      {
+        "model": "knn",
+        "n_jobs": -1,
+        "rows_train": 20000,
+        "features": 67,
+        "fit_s": 0.003,
+        "predict_s": 0.078,
+        "score": 0.6305
+      },
+      {
+        "model": "kmeans",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 0.553,
+        "predict_s": 0.004,
+        "score": 14068540.0
+      },
+      {
+        "model": "random_forest",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 4.956,
+        "predict_s": 0.087,
+        "score": 0.82125
+      },
+      {
+        "model": "xgboost",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 2.038,
+        "predict_s": 0.015,
+        "score": 0.8267
+      },
+      {
+        "model": "mlp",
+        "n_jobs": -1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 8.739,
+        "predict_s": 0.008,
+        "score": 0.8262
+      }
+    ]
+  },
+  "e9": {
+    "profile_md5_4dp": "5249abca4f57307bf7838101c4402b9d",
+    "rows": 10000,
+    "duplicates": 0,
+    "max_abs_corr": 0.73874,
+    "num_0_mean": 0.016178,
+    "scores": {
+      "logistic": 0.83,
+      "knn": 0.7265,
+      "random_forest": 0.811
+    }
+  }
+}

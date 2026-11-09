@@ -1,0 +1,83 @@
+{
+  "experiment": "e3",
+  "port": "8083",
+  "seconds": 153,
+  "result": {
+    "load": {
+      "rows": 100000,
+      "features": 67,
+      "s": 1.204
+    },
+    "models": [
+      {
+        "model": "logistic",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 2.426,
+        "predict_s": 0.007,
+        "score": 0.83735
+      },
+      {
+        "model": "ridge",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 5.385,
+        "predict_s": 0.003,
+        "score": 0.832427
+      },
+      {
+        "model": "knn",
+        "n_jobs": 1,
+        "rows_train": 20000,
+        "features": 67,
+        "fit_s": 0.004,
+        "predict_s": 1.475,
+        "score": 0.6305
+      },
+      {
+        "model": "kmeans",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 4.548,
+        "predict_s": 0.008,
+        "score": 14043241
+      },
+      {
+        "model": "random_forest",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 67.178,
+        "predict_s": 0.331,
+        "score": 0.82125
+      },
+      {
+        "model": "xgboost",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 10.847,
+        "predict_s": 0.174,
+        "score": 0.8267
+      },
+      {
+        "model": "mlp",
+        "n_jobs": 1,
+        "rows_train": 80000,
+        "features": 67,
+        "fit_s": 44.843,
+        "predict_s": 0.161,
+        "score": 0.8268
+      }
+    ],
+    "jank": {
+      "maxFrameGapMs": 17,
+      "frames": 8697,
+      "maxTimerDriftMs": 3
+    },
+    "wasm_heap_mb": 584
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "experiment": "e6b",
+  "port": "8083",
+  "seconds": 106,
+  "result": {
+    "xgb": [
+      {
+        "rounds": 60,
+        "plain_s": 7.922,
+        "callback_s": 7.594,
+        "overhead_pct": -4.1,
+        "same_predictions": true
+      },
+      {
+        "rounds": 60,
+        "plain_s": 7.569,
+        "callback_s": 7.684,
+        "overhead_pct": 1.5,
+        "same_predictions": true
+      },
+      {
+        "rounds": 60,
+        "plain_s": 8.282,
+        "callback_s": 8.311,
+        "overhead_pct": 0.3,
+        "same_predictions": true
+      }
+    ],
+    "mlp": [
+      {
+        "without_s": 7.702,
+        "with_s": 7.419,
+        "overhead_pct": -3.7
+      },
+      {
+        "without_s": 6.826,
+        "with_s": 6.687,
+        "overhead_pct": -2
+      },
+      {
+        "without_s": 6.755,
+        "with_s": 7.203,
+        "overhead_pct": 6.6
+      }
+    ]
+  }
+}
