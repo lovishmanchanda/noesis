@@ -56,6 +56,18 @@ function classification(
   return ctxOf(pipeline, profile, { train: profile });
 }
 
+/** Sets settings on the model step of a context, as the Model screen would. */
+function withModel(ctx: RuleContext, params: Record<string, unknown>): RuleContext {
+  const pipeline = structuredClone(ctx.pipeline);
+  const model = pipeline.nodes.find((n) => n.type === 'model');
+  for (const [k, v] of Object.entries(params))
+    if (model) model.params[k] = { value: v as never, source: 'user' };
+  return { ...ctx, pipeline };
+}
+
+const falling = (from: number, to: number, n = 10): number[] =>
+  Array.from({ length: n }, (_, i) => from + ((to - from) * i) / (n - 1));
+
 interface Case {
   rule: string;
   label: string;
@@ -512,6 +524,187 @@ const CASES: Case[] = [
     rule: 'R09',
     label: 'the test set was used',
     ctx: { ...regression([num('a')], { model: 'random_forest' }), runs: [run()], testUsed: true },
+    count: 0,
+  },
+  // M09 and M10: the browser engine is slow for some jobs
+  {
+    rule: 'M09',
+    label: 'a network that would take a while',
+    ctx: withModel(regression([num('a')], { model: 'mlp' }, { rows: 100000 }), { epochs: 100 }),
+    count: 1,
+  },
+  {
+    rule: 'M09',
+    label: '1.6 million row-epochs is the boundary',
+    ctx: withModel(regression([num('a')], { model: 'mlp' }, { rows: 16000 }), { epochs: 100 }),
+    count: 0,
+  },
+  {
+    rule: 'M09',
+    label: 'on the local companion it is fast',
+    ctx: (() => {
+      const c = withModel(regression([num('a')], { model: 'mlp' }, { rows: 100000 }), {
+        epochs: 100,
+      });
+      return { ...c, settings: { ...c.settings, engine: 'companion' as const } };
+    })(),
+    count: 0,
+  },
+  {
+    rule: 'M10',
+    label: '200,001 rows',
+    ctx: regression([num('a')], { model: 'random_forest' }, { rows: 200001 }),
+    count: 1,
+  },
+  {
+    rule: 'M10',
+    label: '200,000 rows is the boundary',
+    ctx: regression([num('a')], { model: 'random_forest' }, { rows: 200000 }),
+    count: 0,
+  },
+  // R05 to R07: how an iterative fit went
+  {
+    rule: 'R05',
+    label: 'the loss became invalid',
+    ctx: {
+      ...regression([num('a')], { model: 'mlp' }),
+      runs: [
+        run({
+          algorithm: 'mlp',
+          status: 'failed',
+          errorCode: 'E_NAN_LOSS',
+          trainScore: null,
+          validationScore: null,
+          settings: { learning_rate: null },
+        }),
+      ],
+    },
+    count: 1,
+  },
+  {
+    rule: 'R05',
+    label: 'the loss rose over five epochs',
+    ctx: {
+      ...regression([num('a')], { model: 'mlp' }),
+      runs: [
+        run({
+          algorithm: 'mlp',
+          trainLoss: [1, 1.1, 1.3, 1.6, 2.0],
+          settings: { learning_rate: null },
+        }),
+      ],
+    },
+    count: 1,
+  },
+  {
+    rule: 'R05',
+    label: 'a loss that keeps falling',
+    ctx: {
+      ...regression([num('a')], { model: 'mlp' }),
+      runs: [
+        run({ algorithm: 'mlp', trainLoss: falling(2, 1), settings: { learning_rate: null } }),
+      ],
+    },
+    count: 0,
+  },
+  {
+    rule: 'R06',
+    label: 'all epochs used and still falling',
+    ctx: {
+      ...regression([num('a')], { model: 'mlp' }),
+      runs: [
+        run({
+          algorithm: 'mlp',
+          stopped: 'max_epochs',
+          validationLoss: falling(2, 1),
+          settings: { epochs: null },
+        }),
+      ],
+    },
+    count: 1,
+  },
+  {
+    rule: 'R06',
+    label: 'stopped early on purpose',
+    ctx: {
+      ...regression([num('a')], { model: 'mlp' }),
+      runs: [
+        run({
+          algorithm: 'mlp',
+          stopped: 'early_stop',
+          validationLoss: falling(2, 1),
+          settings: { epochs: null },
+        }),
+      ],
+    },
+    count: 0,
+  },
+  {
+    rule: 'R06',
+    label: 'all epochs used but the loss has levelled off',
+    ctx: {
+      ...regression([num('a')], { model: 'mlp' }),
+      runs: [
+        run({
+          algorithm: 'mlp',
+          stopped: 'max_epochs',
+          validationLoss: [1, 1, 1, 1, 1, 1],
+          settings: { epochs: null },
+        }),
+      ],
+    },
+    count: 0,
+  },
+  {
+    rule: 'R07',
+    label: 'validation loss rising while training loss falls',
+    ctx: {
+      ...regression([num('a')], { model: 'mlp' }),
+      runs: [
+        run({
+          algorithm: 'mlp',
+          stopped: 'max_epochs',
+          trainLoss: falling(1, 0.2),
+          validationLoss: [1, 0.8, 0.7, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
+          settings: { early_stopping: null, l2: null },
+        }),
+      ],
+    },
+    count: 1,
+  },
+  {
+    rule: 'R07',
+    label: 'already stopped early',
+    ctx: {
+      ...regression([num('a')], { model: 'mlp' }),
+      runs: [
+        run({
+          algorithm: 'mlp',
+          stopped: 'early_stop',
+          trainLoss: falling(1, 0.2),
+          validationLoss: [1, 0.8, 0.7, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
+          settings: { early_stopping: null, l2: null },
+        }),
+      ],
+    },
+    count: 0,
+  },
+  {
+    rule: 'R05',
+    label: 'a run from before the steps ahead of the model changed',
+    ctx: {
+      ...regression([num('a')], { model: 'mlp' }),
+      hashes: { n9: 'new' },
+      runs: [
+        run({
+          algorithm: 'mlp',
+          status: 'failed',
+          errorCode: 'E_NAN_LOSS',
+          nodeHash: 'old',
+          settings: { learning_rate: null },
+        }),
+      ],
+    },
     count: 0,
   },
 ];

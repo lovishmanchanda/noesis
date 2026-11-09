@@ -1,5 +1,6 @@
 import {
   BASELINES,
+  paramValue,
   SCALE_SENSITIVE,
   algorithmOf,
   modelNodes,
@@ -15,7 +16,7 @@ const has = (list: readonly string[], value: string | undefined): boolean =>
 export const M01: Rule = {
   id: 'M01_needs_scaling',
   group: 'M',
-  stage: 'features',
+  stage: 'model',
   severity: 'warn',
   priority: 68,
   appliesTo: ['regression', 'classification', 'clustering', 'forecasting'],
@@ -121,4 +122,66 @@ export const M05: Rule = {
   },
 };
 
-export const MODEL_RULES: Rule[] = [M01, M04, M05];
+export const M09: Rule = {
+  id: 'M09_slow_network_in_browser',
+  group: 'M',
+  stage: 'model',
+  severity: 'tip',
+  priority: 45,
+  appliesTo: ['regression', 'classification'],
+  uses: 'raw',
+  evaluate(ctx) {
+    if (ctx.settings.engine !== 'browser') return [];
+    const model = nodesOfType(ctx.pipeline, 'model').find((m) => algorithmOf(m) === 'mlp');
+    if (!model) return [];
+    const rows = (ctx.train ?? ctx.raw).rows;
+    const epochs = Number(paramValue(model, 'epochs') ?? 100);
+    const rowEpochs = rows * epochs;
+    if (rowEpochs <= ctx.thresholds.M09.rowEpochs) return [];
+    const seconds = Math.round((rowEpochs / 80000 / 20) * 17);
+    return [
+      suggest(M09, {
+        target: { kind: 'model', name: model.id },
+        message: `Training this network on ${rows.toLocaleString('en-GB')} rows for ${epochs} epochs may take about ${seconds} seconds here.`,
+        why: 'Neural networks run about seven times slower in the browser than in a desktop program. Fewer epochs, fewer rows, or a tree model such as a random forest gets to a similar score much faster.',
+        evidence: { rows, epochs, estimatedSeconds: seconds },
+        actions: [
+          {
+            label: 'Use a random forest instead',
+            patch: [{ op: 'setParam', node: model.id, param: 'algorithm', value: 'random_forest' }],
+          },
+        ],
+        buckets: String(Math.floor(rowEpochs / 1_600_000)),
+      }),
+    ];
+  },
+};
+
+export const M10: Rule = {
+  id: 'M10_forest_in_browser',
+  group: 'M',
+  stage: 'model',
+  severity: 'info',
+  priority: 30,
+  appliesTo: ['regression', 'classification'],
+  uses: 'raw',
+  evaluate(ctx) {
+    if (ctx.settings.engine !== 'browser') return [];
+    const model = nodesOfType(ctx.pipeline, 'model').find(
+      (m) => algorithmOf(m) === 'random_forest',
+    );
+    const rows = (ctx.train ?? ctx.raw).rows;
+    if (!model || rows <= ctx.thresholds.M10.rows) return [];
+    return [
+      suggest(M10, {
+        target: { kind: 'model', name: model.id },
+        message: `A random forest on ${rows.toLocaleString('en-GB')} rows can take minutes here.`,
+        why: 'The browser engine uses one processor core. A desktop program would spread the trees over all of them. You can keep working while it trains, and Stop works at any time.',
+        evidence: { rows },
+        buckets: 'forest-big',
+      }),
+    ];
+  },
+};
+
+export const MODEL_RULES: Rule[] = [M01, M04, M05, M09, M10];

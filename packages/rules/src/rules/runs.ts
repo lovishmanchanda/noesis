@@ -6,9 +6,15 @@ import type { PatchOp, Rule, RuleContext, RunSummary, SuggestionAction } from '.
 const eps = 1e-9;
 
 /** True while the model step still has the settings the run was trained with. */
-export function runIsCurrent(run: RunSummary, pipeline: NOESISPipeline): PipelineNode | null {
+export function runIsCurrent(
+  run: RunSummary,
+  pipeline: NOESISPipeline,
+  hashes?: Record<string, string>,
+): PipelineNode | null {
   const node = pipeline.nodes.find((n) => n.id === run.modelNode && n.type === 'model');
   if (!node) return null;
+  const now = hashes?.[run.modelNode];
+  if (run.nodeHash !== undefined && now !== undefined && run.nodeHash !== now) return null;
   for (const [name, value] of Object.entries(run.settings)) {
     if (JSON.stringify(paramValue(node, name) ?? null) !== JSON.stringify(value ?? null))
       return null;
@@ -21,7 +27,7 @@ function currentRuns(ctx: RuleContext): { run: RunSummary; node: PipelineNode }[
   const latest = new Map<string, RunSummary>();
   for (const run of ctx.runs) latest.set(run.modelNode, run);
   return [...latest.values()].flatMap((run) => {
-    const node = runIsCurrent(run, ctx.pipeline);
+    const node = runIsCurrent(run, ctx.pipeline, ctx.hashes);
     return node ? [{ run, node }] : [];
   });
 }
@@ -205,4 +211,141 @@ export const R09: Rule = {
   },
 };
 
-export const RUN_RULES: Rule[] = [R01, R03, R09];
+const sliceEnd = (values: number[] | undefined, n: number): number[] => (values ?? []).slice(-n);
+const rel = (a: number, b: number): number => (b - a) / Math.max(Math.abs(a), eps);
+
+/** Lowers a model's learning rate tenfold, if it has one. */
+function lowerRate(node: PipelineNode, ctx: RuleContext): SuggestionAction[] {
+  const specs = paramSpecs('model', algorithmOf(node), ctx.task);
+  if (!specs['learning_rate']) return [];
+  const rate = Number(currentSetting(node, ctx, 'learning_rate') ?? 0.001);
+  const next = Number((rate / 10).toPrecision(2));
+  return [
+    {
+      label: `Lower the learning rate to ${next}`,
+      patch: [{ op: 'setParam', node: node.id, param: 'learning_rate', value: next }],
+    },
+  ];
+}
+
+export const R05: Rule = {
+  id: 'R05_loss_diverged',
+  group: 'R',
+  stage: 'train',
+  severity: 'warn',
+  priority: 80,
+  appliesTo: ['regression', 'classification'],
+  uses: 'none',
+  evaluate(ctx) {
+    const { window, rise } = ctx.thresholds.R05;
+    return currentRuns(ctx).flatMap(({ run, node }) => {
+      const failed = run.status === 'failed' && run.errorCode === 'E_NAN_LOSS';
+      const losses = sliceEnd(run.trainLoss, window);
+      const rising =
+        losses.length === window && rel(losses[0] as number, losses[window - 1] as number) > rise;
+      if (!failed && !rising) return [];
+      return [
+        suggest(R05, {
+          target: { kind: 'run', name: run.id },
+          message: failed
+            ? 'The training loss became invalid, so the run stopped.'
+            : `The training loss rose over the last ${window} epochs instead of falling.`,
+          why: 'A learning rate that is too high makes each step overshoot, so the model gets worse instead of better. A lower rate takes smaller steps. Scaling the number columns also helps.',
+          evidence: { epochs: losses.length, ...(failed ? { error: run.errorCode ?? null } : {}) },
+          actions: lowerRate(node, ctx),
+          buckets: failed ? 'nan' : 'rising',
+        }),
+      ];
+    });
+  },
+};
+
+export const R06: Rule = {
+  id: 'R06_not_converged',
+  group: 'R',
+  stage: 'train',
+  severity: 'tip',
+  priority: 60,
+  appliesTo: ['regression', 'classification'],
+  uses: 'none',
+  evaluate(ctx) {
+    const { window, stillFalling } = ctx.thresholds.R06;
+    return currentRuns(ctx).flatMap(({ run, node }) => {
+      if (run.stopped !== 'max_epochs') return [];
+      const losses = sliceEnd(run.validationLoss ?? run.trainLoss, window);
+      if (
+        losses.length < window ||
+        rel(losses[0] as number, losses[window - 1] as number) > -stillFalling
+      )
+        return [];
+      const specs = paramSpecs('model', algorithmOf(node), ctx.task);
+      const name = specs['epochs'] ? 'epochs' : specs['max_iter'] ? 'max_iter' : null;
+      if (!name) return [];
+      const now = Number(currentSetting(node, ctx, name) ?? 100);
+      return [
+        suggest(R06, {
+          target: { kind: 'run', name: run.id },
+          message: `The model used all ${now} ${name === 'epochs' ? 'epochs' : 'steps'} while the loss was still falling.`,
+          why: 'Training stopped because it ran out of steps, not because it had learned all it could. More steps may improve the score.',
+          evidence: { [name]: now },
+          actions: [
+            {
+              label: `Allow ${now * 2} ${name === 'epochs' ? 'epochs' : 'steps'}`,
+              patch: [{ op: 'setParam', node: node.id, param: name, value: now * 2 }],
+            },
+          ],
+          buckets: 'more-steps',
+        }),
+      ];
+    });
+  },
+};
+
+export const R07: Rule = {
+  id: 'R07_validation_loss_rising',
+  group: 'R',
+  stage: 'train',
+  severity: 'warn',
+  priority: 72,
+  appliesTo: ['regression', 'classification'],
+  uses: 'none',
+  evaluate(ctx) {
+    const { window, valRise } = ctx.thresholds.R07;
+    return currentRuns(ctx).flatMap(({ run, node }) => {
+      const val = run.validationLoss ?? [];
+      const train = sliceEnd(run.trainLoss, window);
+      if (val.length < window || train.length < window) return [];
+      const best = Math.min(...val);
+      const rising = rel(best, val[val.length - 1] as number) > valRise;
+      const trainFalling = (train[window - 1] as number) < (train[0] as number);
+      if (!rising || !trainFalling || run.stopped === 'early_stop') return [];
+      const specs = paramSpecs('model', algorithmOf(node), ctx.task);
+      const actions: SuggestionAction[] = [];
+      if (specs['early_stopping'] && currentSetting(node, ctx, 'early_stopping') !== true)
+        actions.push({
+          label: 'Stop early when the validation loss stops improving',
+          patch: [{ op: 'setParam', node: node.id, param: 'early_stopping', value: true }],
+        });
+      if (specs['l2']) {
+        const l2 = Number(currentSetting(node, ctx, 'l2') ?? 0.0001);
+        actions.push({
+          label: `Raise the penalty to ${l2 * 10}`,
+          patch: [{ op: 'setParam', node: node.id, param: 'l2', value: l2 * 10 }],
+        });
+      }
+      return [
+        suggest(R07, {
+          target: { kind: 'run', name: run.id },
+          message:
+            'The loss on new rows started rising while the loss on training rows kept falling.',
+          why: 'This is the sign of memorising: after some epoch the model gets better at the rows it has seen and worse at rows it has not. Stopping at the best epoch keeps what it learned and drops what it memorised.',
+          evidence: { bestLoss: best, lastLoss: val[val.length - 1] ?? null },
+          actions,
+          buckets: 'rising',
+        }),
+      ];
+    });
+  },
+};
+
+export const RUN_RULES: Rule[] = [R01, R03, R05, R06, R07, R09];
