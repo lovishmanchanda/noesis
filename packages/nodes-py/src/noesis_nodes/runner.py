@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
@@ -44,6 +45,8 @@ class RunResult:
     order: list[str]
     executed: list[str] = field(default_factory=list)
     reused: list[str] = field(default_factory=list)
+    #: milliseconds each executed step took
+    timings: dict[str, float] = field(default_factory=dict)
 
 
 def topological_order(nodes: list[dict]) -> list[str]:
@@ -95,6 +98,7 @@ def run_pipeline(
     hashes: dict[str, str] | None = None,
     cache: NodeCache | None = None,
     want: set[str] | None = None,
+    viz: str = "full",
 ) -> RunResult:
     """Execute the data and preparation steps. `source` is a DataFrame, a path or a file object.
 
@@ -102,7 +106,7 @@ def run_pipeline(
     instead of run, and new results are stored. `want` names the outputs the caller needs; it
     defaults to every step that nothing else reads.
     """
-    kwargs: dict[str, Any] = {}
+    kwargs: dict[str, Any] = {"viz": viz}
     if emit:
         kwargs["emit"] = emit
     if cancelled:
@@ -119,6 +123,7 @@ def run_pipeline(
     outputs: dict[str, Data] = {}
     executed: list[str] = []
     reused: list[str] = []
+    timings: dict[str, float] = {}
     lineage: dict[str, str | None] = {}  # the latest model upstream of each step
 
     for node_id in order:
@@ -136,10 +141,11 @@ def run_pipeline(
                     ctx.fitted[node_id] = fitted
                 reused.append(node_id)
                 lineage[node_id] = None
-                ctx.emit("node_reused", {"node": node_id})
+                ctx.emit("node_finished", {"node": node_id, "durationMs": 0, "cacheHit": True})
                 continue
         params = resolve_params(node, ctx.task)
-        ctx.emit("node_started", {"node": node_id, "type": node["type"]})
+        started = time.perf_counter()
+        ctx.emit("node_started", {"node": node_id, "type": node["type"], **({"algorithm": params["algorithm"]} if node["type"] == "model" else {})})
         if node["type"] == "load_csv":
             if source is None:
                 raise ValueError("load_csv needs a data source")
@@ -156,5 +162,6 @@ def run_pipeline(
                 use_cache.put(key, outputs[node_id], ctx.fitted.get(node_id))
         executed.append(node_id)
         lineage[node_id] = node_id if node["type"] == "model" else (lineage.get(node["inputs"][0]) if node.get("inputs") else None)
-        ctx.emit("node_finished", {"node": node_id})
-    return RunResult(outputs, ctx, order, executed, reused)
+        timings[node_id] = round((time.perf_counter() - started) * 1000, 1)
+        ctx.emit("node_finished", {"node": node_id, "durationMs": timings[node_id], "cacheHit": False})
+    return RunResult(outputs, ctx, order, executed, reused, timings)

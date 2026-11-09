@@ -55,6 +55,8 @@ class Ctx:
     current_model: str | None = None
     test_used: set[str] = field(default_factory=set)
     n_jobs: int = 1
+    #: how much detail training events carry: off, light or full (docs/design/training-events.md)
+    viz: str = "full"
     emit: Callable[[str, dict], None] = lambda event, data: None
     cancelled: Callable[[], bool] = lambda: False
 
