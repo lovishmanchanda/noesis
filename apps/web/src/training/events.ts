@@ -284,6 +284,15 @@ export const ANIMATED = new Set([
   'coef_update',
 ]);
 
+/** Events that close one step of training, for "next epoch" in step mode. */
+export const EPOCH_EVENTS = new Set([
+  'epoch_end',
+  'boost_round',
+  'ensemble_progress',
+  'fit_progress',
+  'coef_update',
+]);
+
 /** Events the user can lose without harm (see docs/design/training-events.md). */
 export const DROPPABLE = new Set([
   'batch_end',
