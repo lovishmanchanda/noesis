@@ -56,9 +56,12 @@ No dates are given because the team size and hours are not known yet.
 |---|---|
 | 0. Foundations | Done. Registry, validator, Python steps and the contract test are merged. |
 | 1. Data in | Done. The web app shell, the Python engine in a worker with a loading screen, the startup, project, data, target, tidy and split screens, autosave with Continue, and a project file. Verified in the browser by running a sample from start to split, closing the page and continuing. |
-| 2. Prepare | Next. |
+| 2. Prepare | Done. The rule engine (22 rules, each with fires, does-not-fire and boundary fixtures, an idempotence test and a validity test), step hashing with an outdated marker, a Feather-with-lz4 result cache in the engine, the suggestions panel with preview, Undo and dismissal, and the Explore, Missing values and Features screens. Verified in the browser from a sample through all three screens, including a reload. |
+| 3. Train | Next. |
 
 Notes from Phase 1 that change the plan slightly: the profile of the training rows is computed in Python at the split and returned with the part sizes (needed by every later rule); the early steps can be rebuilt from the saved choices, so a saved project only stores the choices and the CSV bytes, not intermediate data; Playwright end-to-end tests are postponed because they download browsers outside the repository folder, so Phase 1 was checked in the built-in browser and by unit tests.
+
+Notes from Phase 2 that change the plan slightly: the rules read two profiles, the file as loaded (for facts about the file) and the training rows right after the split (for every choice made from statistics), and the engine returns a third, the training rows as they leave the last step, so the screens can show what a model would receive. The result cache lives in the engine's memory for now; keeping it in the browser's storage across visits waits for Phase 3, where model files need the same storage budget. The Python side loads scikit-learn and pyarrow the first time a pipeline needs them (about 4 s on the Mac), not at start-up. Suggestions add a fifth patch operation, `setMetric`, because T04 needs to change the metric. Rules C10, C11 and C13 and the Expert-mode switch for exploring all rows are not built yet; they are outside the first set of rules.
 
 **Clean-up after every phase.** When a phase is merged, run `pnpm clean` and then `pnpm clean:yes` (see [CONTRIBUTING.md](../../CONTRIBUTING.md)), so generated data, caches, logs, archives and scratch files never pile up, and check that nothing was written outside the repository folder.
 
