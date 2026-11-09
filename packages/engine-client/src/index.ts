@@ -26,6 +26,10 @@ export interface ColumnProfile {
   q1?: number | null;
   q3?: number | null;
   outliers?: number;
+  /** Correlation with the target (number columns), when the target is a number or has two classes. */
+  targetCorr?: number | null;
+  /** Correlation of a date column with the target: does the target drift over time? */
+  targetTrend?: number | null;
   histogram?: { counts: number[]; min: number | null; max: number | null };
   top?: { value: string; count: number }[];
 }
