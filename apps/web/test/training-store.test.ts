@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { TrainingEvent } from '@noesis/engine-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  MAX_EVENTS,
   REPLAY_MS,
   SLOW_MS,
   beginRun,
@@ -55,6 +56,31 @@ describe('live pacing', () => {
     const v = useTraining.getState().visual;
     expect(v.curve).toHaveLength(epochs);
     expect(v.status).toBe('succeeded');
+  });
+});
+
+describe('a flood of events', () => {
+  it('is thinned to a bound and never freezes the page', async () => {
+    beginRun('flood', 'full');
+    const flood = (i: number): TrainingEvent => ({
+      v: 1,
+      runId: 'flood',
+      seq: i,
+      t: i,
+      node: 'n',
+      trial: null,
+      type: i % 1000 === 0 ? 'epoch_end' : 'weights_snapshot',
+      source: 'live',
+      data: { epoch: i / 1000, totalEpochs: 500, trainLoss: 1, valLoss: 1 },
+    });
+    const started = performance.now();
+    for (let i = 0; i < 40; i++)
+      pushEvents(Array.from({ length: 5000 }, (_, j) => flood(i * 5000 + j + 1)));
+    await vi.advanceTimersByTimeAsync(50);
+    expect(useTraining.getState().events.length).toBeLessThanOrEqual(MAX_EVENTS + 200);
+    // every result event is still there
+    expect(useTraining.getState().events.filter((e) => e.type === 'epoch_end')).toHaveLength(200);
+    expect(performance.now() - started).toBeLessThan(2000);
   });
 });
 

@@ -208,7 +208,10 @@ export function diffRuns(a: RunRecord, b: RunRecord): StepDiff[] {
       out.push({ node: id, type: nb.type, label, change: 'changed', params });
     }
   }
-  return out;
+  // A step whose settings are the same but whose hash differs only follows from an earlier change.
+  // Show it only when nothing else explains the difference.
+  const explained = out.filter((d) => d.change !== 'changed' || d.params.length > 0);
+  return explained.length > 0 ? explained : out;
 }
 
 const CAP_BYTES = 1_000_000;

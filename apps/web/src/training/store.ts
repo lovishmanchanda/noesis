@@ -2,6 +2,7 @@ import type { TrainOutcome, TrainingEvent, VizLevel } from '@noesis/engine-clien
 import { create } from 'zustand';
 import {
   ANIMATED,
+  DROPPABLE,
   EPOCH_EVENTS,
   applyEvent,
   emptyVisual,
@@ -11,6 +12,9 @@ import {
 
 /** How fast the page shows what happened (docs/design/training-events.md, "Pacing"). */
 export type Pacing = 'live' | 'slow' | 'step';
+
+/** The most events kept for one run. Past this, only events that carry a result are kept. */
+export const MAX_EVENTS = 50_000;
 
 /** Milliseconds between animated events in slow motion, and when replaying a finished run. */
 export const SLOW_MS = 70;
@@ -109,7 +113,9 @@ export function beginRun(runId: string, viz: VizLevel): void {
 export function pushEvents(batch: TrainingEvent[]): void {
   if (batch.length === 0) return;
   const state = useTraining.getState();
-  state.events.push(...batch);
+  // A flood of droppable events is thinned, not stored: memory and the page stay bounded.
+  for (const e of batch)
+    if (state.events.length < MAX_EVENTS || !DROPPABLE.has(e.type)) state.events.push(e);
   if (state.pacing === 'live') {
     if (frame) return;
     frame = true;

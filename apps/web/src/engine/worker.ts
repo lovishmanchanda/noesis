@@ -26,16 +26,25 @@ const LEARNING_STEPS = [
   'scale',
   'select_features',
   'reduce_dimensions',
+  'model',
+  'validate',
 ];
 let learningLoaded = false;
+let boostingLoaded = false;
 
 /** Loads the heavier packages the first time a pipeline needs them (scikit-learn, and pyarrow for the result cache). */
 async function ensurePackagesFor(pipelineJson: string): Promise<void> {
-  if (learningLoaded || !pyodide) return;
+  if (!pyodide) return;
   const nodes = (JSON.parse(pipelineJson) as { nodes: { type: string }[] }).nodes;
-  if (!nodes.some((n) => LEARNING_STEPS.includes(n.type))) return;
-  await pyodide.loadPackage(['scikit-learn', 'pyarrow']);
-  learningLoaded = true;
+  if (!learningLoaded && nodes.some((n) => LEARNING_STEPS.includes(n.type))) {
+    await pyodide.loadPackage(['scikit-learn', 'pyarrow']);
+    learningLoaded = true;
+  }
+  // XGBoost is only fetched when a boosting model is trained.
+  if (!boostingLoaded && pipelineJson.includes('"gradient_boosting"')) {
+    await pyodide.loadPackage('xgboost');
+    boostingLoaded = true;
+  }
 }
 
 const post = (message: WorkerMessage): void => self.postMessage(message);

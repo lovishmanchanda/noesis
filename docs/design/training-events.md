@@ -264,6 +264,20 @@ An out-of-memory crash can kill the worker with no event at all. The missing hea
 - **Cancel test:** cancel at every phase and check the run ends in `cancelled`, not a hang.
 - **Replay equivalence:** a replayed tree must match the fitted tree exactly (same splits, same counts).
 
+## Built in Phase 3
+
+| Algorithm | What the engine sends | Live or replay |
+|---|---|---|
+| Neural network | `model_structure`, `epoch_end` per epoch (both losses and a score), `weights_snapshot` (at most 16 by 16 per layer, at most 4 a second), `early_stop`, `training_diverged` | live |
+| Random forest | `model_structure`, `ensemble_progress` about 20 times during growth (the forest grows in chunks of trees, which gives the same forest as growing it at once), `tree_started`, `tree_node_added` and `tree_finished` for the first three trees (top 6 levels, at most 200 nodes), `feature_importance` | progress live, trees replay |
+| XGBoost | `model_structure`, `boost_round` per round (training and validation loss), `feature_importance`; Stop takes effect at the next round | live |
+| Logistic regression | `fit_progress` (real iteration count and whether it settled), `coef_update` | live |
+| Linear and ridge regression | `coef_update` | replay (solved in one step) |
+
+Every other algorithm trains with the lifecycle events only. Decisions made while building it: the screen draws curves, bars, the network and the tree as plain SVG, with no chart library. Events are thinned in the worker (a droppable event replaces an unsent one of the same kind) and the page keeps at most 50,000 events per run (droppable ones are dropped beyond that). The stored log keeps every result event and thins weight pictures to about 8, capped at 1 MB per run. The visualisation level is chosen before the run and cannot change during it. Pause and resume were not built.
+
+The golden logs the tests read are in `fixtures/events/`, recorded by `fixtures/events/generate.py`.
+
 ## Open items
 
 - Which algorithms are `live` and which are `replay`: drafted in [engine-choice.md](../architecture/engine-choice.md). Confirmed in the spike for the neural net, forest, XGBoost, K-means. Not yet tested: logistic regression, SVM, KNN, single trees, DBSCAN, hierarchical.

@@ -19,7 +19,6 @@ from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC, SVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from xgboost import XGBClassifier, XGBRegressor
 
 from .context import Ctx, Data
 from .training import TRAINERS
@@ -67,6 +66,8 @@ def build_estimator(algorithm: str, p: dict[str, Any], ctx: Ctx, early_stopping:
             n_jobs=jobs, random_state=seed, **kwargs,
         )
     if algorithm == "gradient_boosting":
+        from xgboost import XGBClassifier, XGBRegressor  # loaded on demand: the browser fetches it only when needed
+
         stop = p["early_stopping_rounds"] if early_stopping else None
         return pick(XGBClassifier, XGBRegressor)(
             n_estimators=p["n_estimators"], learning_rate=p["learning_rate"], max_depth=p["max_depth"],

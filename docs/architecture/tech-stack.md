@@ -14,7 +14,7 @@ Status per row: **tested** (checked in the engine spike), **chosen** (decided he
 | Pipeline file | JSON, checked by JSON Schema | chosen | [pipeline.schema.json](../../packages/schema/pipeline.schema.json) |
 | Front end | TypeScript 6.0, React, Vite | chosen | TypeScript is pinned to 6.0 because the lint tooling does not support 7 yet |
 | State | Zustand | chosen | The pipeline is plain data, so a small store is enough |
-| Charts | Observable Plot or D3 for most; canvas for dense scatter plots | open | Needs a quick test: 1,000-point scatter and a 64-unit network at smooth frame rate while the engine runs |
+| Charts | Hand-written SVG components (line chart, bars, network, tree); canvas only if a dense scatter plot is added later | decided in Phase 3 | The curves have at most a few thousand points and the network draws at most about 300 lines, so plain SVG was smooth: a 6-second neural-network run (743 epochs, about 125 events a second) produced no main-thread task over 50 ms. No chart library means no extra dependency, no licence to review, and nothing more to download. Revisit if a screen needs a 10,000-point scatter or zooming |
 | Node-graph editor (canvas mode, later) | React Flow | chosen | Not in v1 |
 | Styling | CSS variables for colour, spacing and type tokens | chosen | Light, dark and system modes |
 | Schema validation in the browser | Ajv | chosen | Same schema file as the docs |
@@ -79,7 +79,7 @@ This stops the docs, the UI and the engine from drifting apart, which is the mos
 
 ## Open decisions
 
-1. Chart library, after the scatter and network test.
+1. ~~Chart library~~ decided in Phase 3: plain SVG, see the table above.
 2. Hosting provider.
 3. Server library for the companion.
 4. Product name, repository licence (open source or not), and first target users.

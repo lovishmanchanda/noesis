@@ -61,12 +61,16 @@ const leafValue = (n: TreeNodeView): string => {
  * summarised, not drawn. The tree is replayed from the finished model, so it is labelled so.
  */
 export function TreeView({
-  nodes,
+  nodes: all,
   summary,
+  levels = 4,
 }: {
   nodes: TreeNodeView[];
+  /** How many levels to draw. Deeper ones are in the summary only, so the picture stays readable. */
+  levels?: number;
   summary?: { nodes: number; depth: number; leaves: number } | undefined;
 }) {
+  const nodes = all.filter((n) => n.depth < levels);
   if (nodes.length === 0) return <p className="muted">The tree appears when training ends.</p>;
   const { placed, width, height } = place(nodes);
   const byId = new Map(placed.map((n) => [n.nodeId, n]));
@@ -110,7 +114,7 @@ export function TreeView({
       </svg>
       <figcaption className="muted small">
         {summary
-          ? `${summary.nodes} nodes, ${summary.leaves} leaves, ${summary.depth} levels deep. `
+          ? `Top ${levels} levels of ${summary.nodes} nodes (${summary.leaves} leaves, ${summary.depth} levels deep). `
           : ''}
         <span className="replay-tag">replay of the learned structure</span>
       </figcaption>

@@ -15,7 +15,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from sklearn import metrics as skm
-from xgboost.callback import TrainingCallback
 
 from .context import Ctx
 
@@ -194,29 +193,36 @@ def fit_forest(est: Any, x: pd.DataFrame, y: Any, vx: pd.DataFrame | None, vy: A
 
 
 # --- gradient boosting (XGBoost) ---------------------------------------------------------------
-class _Rounds(TrainingCallback):
-    """Reports each boosting round and stops at the next round when asked."""
+def _rounds_callback(ctx: Ctx, node: str, learning_rate: float, total: int) -> Any:
+    """Reports each boosting round and stops at the next round when asked.
 
-    def __init__(self, ctx: Ctx, node: str, learning_rate: float, total: int) -> None:
-        self.ctx, self.node, self.lr, self.total = ctx, node, learning_rate, total
-        self.curve: list[dict[str, Any]] = []
+    XGBoost is imported here, not at the top of the file, so the browser only downloads it when a
+    boosting model is trained.
+    """
+    from xgboost.callback import TrainingCallback
 
-    def after_iteration(self, model: Any, epoch: int, evals_log: dict) -> bool:
-        def last(name: str) -> float | None:
-            series = evals_log.get(name)
-            return _round(next(iter(series.values()))[-1]) if series else None
+    class Rounds(TrainingCallback):
+        def __init__(self) -> None:
+            self.curve: list[dict[str, Any]] = []
 
-        row = {"round": epoch + 1, "trainLoss": last("validation_0"), "valLoss": last("validation_1") or last("validation_0")}
-        self.curve.append(row)
-        self.ctx.emit("boost_round", {"node": self.node, "totalRounds": self.total, "learningRate": self.lr, **row})
-        return bool(self.ctx.cancelled())
+        def after_iteration(self, model: Any, epoch: int, evals_log: dict) -> bool:
+            def last(name: str) -> float | None:
+                series = evals_log.get(name)
+                return _round(next(iter(series.values()))[-1]) if series else None
+
+            row = {"round": epoch + 1, "trainLoss": last("validation_0"), "valLoss": last("validation_1") or last("validation_0")}
+            self.curve.append(row)
+            ctx.emit("boost_round", {"node": node, "totalRounds": total, "learningRate": learning_rate, **row})
+            return bool(ctx.cancelled())
+
+    return Rounds()
 
 
 def fit_boosting(est: Any, x: pd.DataFrame, y: Any, vx: pd.DataFrame | None, vy: Any, p: dict[str, Any], ctx: Ctx, node: str) -> dict[str, Any]:
     from .context import Cancelled
 
     have_val = vx is not None and len(vx) > 0
-    callback = _Rounds(ctx, node, float(p["learning_rate"]), int(p["n_estimators"]))
+    callback = _rounds_callback(ctx, node, float(p["learning_rate"]), int(p["n_estimators"]))
     est.set_params(callbacks=[callback])
     ctx.emit("model_structure", {"node": node, "algorithm": "gradient_boosting", "totalRounds": int(p["n_estimators"]), "features": x.shape[1]})
     eval_set = [(x, y)] + ([(vx, vy)] if have_val else [])

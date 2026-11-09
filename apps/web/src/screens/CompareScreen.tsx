@@ -57,7 +57,8 @@ export function CompareScreen() {
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id].slice(-3)));
   const best = ranked[0];
   const chosen = runs.find((r) => r.runId === project.candidate);
-  const firstKind = curves[picked[0] ?? '']?.kind ?? null;
+  const withCurve = picked.filter((id) => (curves[id]?.curve.length ?? 0) > 0);
+  const firstKind = curves[withCurve[0] ?? '']?.kind ?? null;
   const overlay = picked
     .filter(
       (id) => curves[id] && curves[id]?.kind === firstKind && (curves[id]?.curve.length ?? 0) > 0,
@@ -69,7 +70,8 @@ export function CompareScreen() {
         .filter((p) => p.val !== null)
         .map((p) => ({ x: p.x, y: p.val as number })),
     }));
-  const skipped = picked.filter((id) => curves[id] && curves[id]?.kind !== firstKind).length;
+  const skipped = withCurve.filter((id) => curves[id]?.kind !== firstKind).length;
+  const noCurve = picked.filter((id) => curves[id] && (curves[id]?.curve.length ?? 0) === 0).length;
   const [a, b] = picked
     .map((id) => runs.find((r) => r.runId === id))
     .filter((r): r is RunRecord => r !== undefined);
@@ -235,6 +237,12 @@ export function CompareScreen() {
             label={`${firstKind === 'score' ? 'Validation score' : 'Validation loss'}, run by run`}
             yLabel={firstKind === 'score' ? 'score' : 'loss'}
           />
+          {noCurve > 0 && (
+            <p className="muted small">
+              {noCurve} selected {noCurve === 1 ? 'run has' : 'runs have'} no learning curve,
+              because {noCurve === 1 ? 'it is' : 'they are'} solved in one step.
+            </p>
+          )}
           {skipped > 0 && (
             <p className="muted small">
               {skipped} selected {skipped === 1 ? 'run has' : 'runs have'} a different kind of
