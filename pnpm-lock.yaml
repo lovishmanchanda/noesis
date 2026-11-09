@@ -235,7 +235,17 @@ importers:
 
   packages/registry: {}
 
-  packages/rules: {}
+  packages/rules:
+    dependencies:
+      '@noesis/engine-client':
+        specifier: workspace:*
+        version: link:../engine-client
+      '@noesis/registry':
+        specifier: workspace:*
+        version: link:../registry
+      '@noesis/schema':
+        specifier: workspace:*
+        version: link:../schema
 
   packages/schema:
     dependencies:

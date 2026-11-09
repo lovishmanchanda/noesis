@@ -3,5 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "description": "The suggestion rule engine and rule definitions",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@noesis/engine-client": "workspace:*",
+    "@noesis/registry": "workspace:*",
+    "@noesis/schema": "workspace:*"
+  }
 }

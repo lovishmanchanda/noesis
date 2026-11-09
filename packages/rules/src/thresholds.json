@@ -1,0 +1,20 @@
+{
+  "_note": "Every number a rule uses lives here, so it can be tuned without touching rule logic. These are starting guesses to be tuned on real datasets (see docs/design/rule-engine.md).",
+  "D01": { "minRows": 500 },
+  "D03": { "duplicateShare": 0.01 },
+  "T04": { "minorityShare": 0.1 },
+  "C01": {
+    "uniqueShare": 0.98,
+    "namePattern": "(^|[^a-z])(id|uuid|guid|key|index)([^a-z]|$)|_id$|id$"
+  },
+  "C04": { "missingShare": 0.4 },
+  "C05": { "skewForMedian": 0.5 },
+  "C08": { "maxCategories": 15 },
+  "C09": { "minCategories": 50 },
+  "C12": { "correlation": 0.98 },
+  "S02": { "trend": 0.3 },
+  "M05": { "minRows": 1000 },
+  "R01": { "gap": 0.1 },
+  "R03": { "margin": 0 },
+  "noise": { "expandedPerScreen": 3 }
+}
