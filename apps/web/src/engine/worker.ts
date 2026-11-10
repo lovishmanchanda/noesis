@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 // The in-browser engine: Python (Pyodide) running in a worker, so the page stays responsive.
 // It loads the Python runtime and the NOESIS package from this site, never from another host.
+import type { TrainingEvent } from '@noesis/engine-client';
 import type { WorkerMessage, WorkerRequest, WorkerResult } from './protocol';
 
 declare const self: DedicatedWorkerGlobalScope;
@@ -17,6 +18,7 @@ const BASE = self.location.origin;
 let pyodide: PyodideApi | null = null;
 let queue: Promise<void> = Promise.resolve();
 /** Steps that need scikit-learn. The package is large, so it loads on first use, not at start-up. */
+const DROPPABLE = new Set(['batch_end', 'weights_snapshot', 'activation_sample', 'sample_rows']);
 const LEARNING_STEPS = [
   'impute',
   'handle_outliers',
@@ -24,16 +26,25 @@ const LEARNING_STEPS = [
   'scale',
   'select_features',
   'reduce_dimensions',
+  'model',
+  'validate',
 ];
 let learningLoaded = false;
+let boostingLoaded = false;
 
 /** Loads the heavier packages the first time a pipeline needs them (scikit-learn, and pyarrow for the result cache). */
 async function ensurePackagesFor(pipelineJson: string): Promise<void> {
-  if (learningLoaded || !pyodide) return;
+  if (!pyodide) return;
   const nodes = (JSON.parse(pipelineJson) as { nodes: { type: string }[] }).nodes;
-  if (!nodes.some((n) => LEARNING_STEPS.includes(n.type))) return;
-  await pyodide.loadPackage(['scikit-learn', 'pyarrow']);
-  learningLoaded = true;
+  if (!learningLoaded && nodes.some((n) => LEARNING_STEPS.includes(n.type))) {
+    await pyodide.loadPackage(['scikit-learn', 'pyarrow']);
+    learningLoaded = true;
+  }
+  // XGBoost is only fetched when a boosting model is trained.
+  if (!boostingLoaded && pipelineJson.includes('"gradient_boosting"')) {
+    await pyodide.loadPackage('xgboost');
+    boostingLoaded = true;
+  }
 }
 
 const post = (message: WorkerMessage): void => self.postMessage(message);
@@ -46,7 +57,11 @@ function py(source: string, values: Record<string, unknown> = {}): string {
   return String(pyodide.globals.get('_out'));
 }
 
-async function init(interrupt: SharedArrayBuffer | null, id: number): Promise<void> {
+async function init(
+  interrupt: SharedArrayBuffer | null,
+  cancel: SharedArrayBuffer | null,
+  id: number,
+): Promise<void> {
   const steps = 4;
   const progress = (step: number, stage: string): void =>
     post({ type: 'progress', stage, step, steps });
@@ -77,16 +92,65 @@ async function init(interrupt: SharedArrayBuffer | null, id: number): Promise<vo
     "import os, sys\nos.environ['NOESIS_REGISTRY'] = '/registry/registry.json'\nsys.path.insert(0, '/py')\nfrom noesis_nodes import session\n_out = 'ok'",
   );
   if (interrupt) pyodide.setInterruptBuffer(new Int32Array(interrupt));
+  if (cancel) {
+    // The training loops read this flag at every step, because some libraries swallow the interrupt.
+    pyodide.globals.set('_cancel_flag', new Int32Array(cancel));
+    py("session.set_cancel_flag(_cancel_flag)\n_out = 'ok'");
+  }
 
   progress(4, 'Ready');
   post({ type: 'result', id, result: null });
+}
+
+/** Runs a training job. Events leave the worker in batches, so the page is not flooded. */
+function runTrain(request: Extract<WorkerRequest, { type: 'train' }>): WorkerResult {
+  let queue: TrainingEvent[] = [];
+  let lastFlush = performance.now();
+  const flush = (): void => {
+    if (queue.length === 0) return;
+    post({ type: 'events', id: request.id, events: queue });
+    queue = [];
+    lastFlush = performance.now();
+  };
+  const send = (text: string): void => {
+    const event = JSON.parse(text) as TrainingEvent;
+    const previous = queue[queue.length - 1];
+    // A droppable event replaces an unsent one of the same kind, so a busy page never falls behind.
+    if (
+      previous &&
+      DROPPABLE.has(event.type) &&
+      previous.type === event.type &&
+      previous.node === event.node
+    )
+      queue[queue.length - 1] = event;
+    else queue.push(event);
+    if (performance.now() - lastFlush >= 33 || queue.length >= 60) flush();
+  };
+  try {
+    const out = py('_out = session.run_train(_pipeline, _hashes, _run_id, _viz, _send)', {
+      _pipeline: request.pipeline,
+      _hashes: request.hashes,
+      _run_id: request.runId,
+      _viz: request.viz,
+      _send: send,
+    });
+    return JSON.parse(out) as WorkerResult;
+  } finally {
+    flush();
+  }
 }
 
 async function handle(request: WorkerRequest): Promise<void> {
   try {
     let result: WorkerResult = null;
     if (request.type === 'init') {
-      await init(request.interrupt, request.id);
+      await init(request.interrupt, request.cancel, request.id);
+      return;
+    }
+    if (request.type === 'train') {
+      await ensurePackagesFor(request.pipeline);
+      result = runTrain(request);
+      post({ type: 'result', id: request.id, result });
       return;
     }
     if (request.type === 'openCsv') {

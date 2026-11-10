@@ -22,6 +22,9 @@ const PROJECT_KEY = 'project:current';
 const FILE_KEY = 'file:current';
 
 let kv: Kv = browserKv;
+/** The store everything on this device is saved in. */
+export const getKv = (): Kv => kv;
+
 /** For tests: use another store. */
 export function useStorage(store: Kv): void {
   kv = store;
@@ -35,7 +38,7 @@ export async function saveNow(): Promise<void> {
   useSave.setState({ status: 'saving' });
   try {
     const { name, topic, goal, dataset, roles, tidy, split, splitResult, seed } = project;
-    const { metric, prepare, dismissed } = project;
+    const { metric, prepare, dismissed, model, validation, candidate } = project;
     const state: ProjectState = {
       name,
       topic,
@@ -49,6 +52,9 @@ export async function saveNow(): Promise<void> {
       metric,
       prepare,
       dismissed,
+      model,
+      validation,
+      candidate,
     };
     const ui = useUi.getState();
     const saved: SavedProject = {

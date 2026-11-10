@@ -9,30 +9,43 @@ import {
 import { useMemo } from 'react';
 import { create } from 'zustand';
 import { applyToProject, editableOf, type Editable } from '../pipeline/apply';
-import { buildEarlyPipeline } from '../pipeline/build';
+import { buildTrainingPipeline } from '../pipeline/build';
+import { summaryOf, type RunRecord } from '../runs/records';
+import { useRuns } from '../runs/store';
 import { reloadWithSettings } from './actions';
 import { useProject, type ProjectState } from './project';
-import { requestRun } from './run';
+import { requestRun, useCurrentHashes } from './run';
 import { useUi, type Mode } from './ui';
 
 /** What the rules see: the file as loaded, the training rows once split, and the pipeline. */
-export function ruleContext(project: ProjectState, mode: Mode): RuleContext | null {
+const BASELINES = ['linear_regression', 'logistic_regression'];
+
+export function ruleContext(
+  project: ProjectState,
+  mode: Mode,
+  extra: { runs?: RunRecord[]; hashes?: Record<string, string> } = {},
+): RuleContext | null {
   if (!project.dataset || !project.goal) return null;
-  const { pipeline } = buildEarlyPipeline(project);
+  const { pipeline } = buildTrainingPipeline(project);
   return {
+    ...(extra.hashes ? { hashes: extra.hashes } : {}),
     raw: project.dataset.profile,
     ...(project.splitResult?.trainProfile ? { train: project.splitResult.trainProfile } : {}),
     pipeline,
     task: pipeline.task.type,
-    runs: [],
+    runs: (extra.runs ?? []).map((r) => summaryOf(r, BASELINES)),
     testUsed: false,
     settings: { mode, disabledGroups: [], engine: 'browser' },
     thresholds: DEFAULT_THRESHOLDS,
   };
 }
 
-export function suggestionsFor(project: ProjectState, mode: Mode): Suggestion[] {
-  const ctx = ruleContext(project, mode);
+export function suggestionsFor(
+  project: ProjectState,
+  mode: Mode,
+  extra: { runs?: RunRecord[]; hashes?: Record<string, string> } = {},
+): Suggestion[] {
+  const ctx = ruleContext(project, mode, extra);
   return ctx ? evaluateRules(ctx) : [];
 }
 
@@ -40,8 +53,10 @@ export function suggestionsFor(project: ProjectState, mode: Mode): Suggestion[] 
 export function useSuggestions(): Suggestion[] {
   const project = useProject();
   const mode = useUi((s) => s.mode);
+  const runs = useRuns((s) => s.runs);
+  const hashes = useCurrentHashes((s) => s.hashes);
   return useMemo(
-    () => suggestionsFor(project, mode),
+    () => suggestionsFor(project, mode, { runs, hashes }),
     // The rules read these parts of the project only.
     [
       project.dataset,
@@ -52,6 +67,10 @@ export function useSuggestions(): Suggestion[] {
       project.metric,
       project.prepare,
       project.splitResult,
+      project.model,
+      project.validation,
+      runs,
+      hashes,
       mode,
     ],
   );
@@ -76,6 +95,7 @@ async function commit(next: Editable, reload: boolean): Promise<void> {
     split: next.split,
     metric: next.metric,
     prepare: next.prepare,
+    model: next.model,
   });
   const hadRun = useProject.getState().splitResult !== null;
   if (reload) await reloadWithSettings(next.loadSettings);

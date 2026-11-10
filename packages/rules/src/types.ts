@@ -84,6 +84,13 @@ export interface RunSummary {
   /** Per-epoch losses, for the iterative models. */
   trainLoss?: number[];
   validationLoss?: number[];
+  /** `failed` runs have no scores but can still explain what went wrong. */
+  status?: 'succeeded' | 'failed';
+  errorCode?: string;
+  /** How an iterative fit ended: `max_epochs` (used them all) or `early_stop`. */
+  stopped?: string;
+  /** Hash of the model step when it ran. A run only counts while the steps before it are unchanged. */
+  nodeHash?: string;
 }
 
 export interface RuleSettings {
@@ -103,6 +110,8 @@ export interface RuleContext {
    */
   train?: DatasetProfile;
   pipeline: NOESISPipeline;
+  /** Current hash of each step (see hashing-and-runs.md), used to tell whether a run is still current. */
+  hashes?: Record<string, string>;
   task: TaskType;
   runs: RunSummary[];
   /** Set once the test set has been used. */

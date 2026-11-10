@@ -288,6 +288,17 @@ describe('patches', () => {
     expect(p.task.primaryMetric).toBe('mae');
   });
 
+  it('drop the settings of the old algorithm when the algorithm changes', () => {
+    const p = pipelineOf(cols, { model: 'mlp' });
+    p.nodes.find((n) => n.type === 'model')!.params['epochs'] = { value: 50, source: 'user' };
+    const out = applyPatch(p, [
+      { op: 'setParam', node: 'n9', param: 'algorithm', value: 'random_forest' },
+    ]);
+    const params = out.nodes.find((n) => n.type === 'model')!.params;
+    expect(Object.keys(params)).toEqual(['algorithm']);
+    expect(params['algorithm']?.value).toBe('random_forest');
+  });
+
   it('refuse to edit a step or column that does not exist', () => {
     expect(() => applyPatch(base, [{ op: 'setParam', node: 'zzz', param: 'x', value: 1 }])).toThrow(
       /zzz/,

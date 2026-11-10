@@ -18,7 +18,8 @@ import {
   type SavedProject,
 } from './state/persist';
 import { initialProject, useProject } from './state/project';
-import { useRun } from './state/run';
+import { clearRuns, loadRuns, useRuns } from './runs/store';
+import { startHashing, useRun } from './state/run';
 import { useSuggestions } from './state/suggestions';
 import { useUi } from './state/ui';
 
@@ -48,6 +49,7 @@ export function App() {
   const enginePhase = useEngine((s) => s.phase);
   const saveStatus = useSave((s) => s.status);
   const running = useRun((r) => r.running);
+  const runs = useRuns((s) => s.runs);
   const suggestions = useSuggestions();
   const dismissed = project.dismissed;
 
@@ -57,7 +59,13 @@ export function App() {
       .then(setSamples)
       .catch(() => setSamples([]));
     void loadSaved().then(setSaved);
-    return startAutosave();
+    void loadRuns();
+    const stopAutosave = startAutosave();
+    const stopHashing = startHashing();
+    return () => {
+      stopAutosave();
+      stopHashing();
+    };
   }, []);
   useEffect(() => setError(null), [screen]);
 
@@ -93,6 +101,7 @@ export function App() {
   };
 
   const startFresh = (): void => {
+    void clearRuns();
     useProject.setState(initialProject());
     useUi.setState({ completed: [], screen: 'project' });
     setStarted(true);
@@ -120,6 +129,7 @@ export function App() {
         }}
         onSample={(s) => {
           setStartupMessage(null);
+          void clearRuns();
           useProject.setState(initialProject());
           useUi.setState({ completed: [], screen: 'project' });
           setStarted(true);
@@ -143,6 +153,7 @@ export function App() {
             const parsed = parseProjectFile(text);
             if (!parsed.ok) return setStartupMessage(parsed.reason);
             const restored = projectFromFile(parsed.file);
+            void clearRuns();
             useProject.setState(restored.project);
             useUi.setState({ completed: restored.completed, screen: restored.screen });
             setStartupMessage(null);
@@ -154,7 +165,7 @@ export function App() {
     );
   }
 
-  const blocked = blockedReason(screen, project);
+  const blocked = blockedReason(screen, project, runs);
   const following = SCREENS[screenIndex(screen) + 1];
   const topSuggestion = suggestions.find(
     (x) => x.stage === screen && !x.alternativeTo && !dismissed.includes(x.fingerprint),
@@ -184,9 +195,11 @@ export function App() {
       onSaveFile={saveProjectFile}
       nextStep={
         (following?.available === false
-          ? project.splitResult
-            ? 'Your data is prepared. The model, training and the steps after it arrive in a later version.'
-            : 'Next step: make the split. The steps after it arrive in a later version.'
+          ? project.candidate
+            ? 'Your model is chosen. The final test and export arrive in a later version.'
+            : project.splitResult
+              ? 'Next step: train a model and choose the best one. The steps after that arrive in a later version.'
+              : 'Next step: make the split. The steps after it arrive in a later version.'
           : following
             ? `Next step: ${following.title.toLowerCase()}`
             : 'Last step') + (topSuggestion ? ` · Suggested: ${topSuggestion.message}` : '')

@@ -17,7 +17,7 @@ describe('screen status', () => {
 
   it('locks screens that arrive in a later version', () => {
     const done = SCREENS.filter((s) => s.available).map((s) => s.id);
-    expect(screenStatus('model', 'split', done)).toMatchObject({
+    expect(screenStatus('explain', 'split', done)).toMatchObject({
       status: 'locked',
       reason: 'Coming in a later version.',
     });

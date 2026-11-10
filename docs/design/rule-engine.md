@@ -91,7 +91,7 @@ A small closed set, so every suggestion is previewable and undoable:
 | `setColumnRole` | Change a column's role (`feature`, `target`, `exclude`) |
 | `setMetric` | Change the primary metric (used by T04, which asks for F1 on a rare class) |
 
-A new step goes where its kind belongs, not necessarily right after the node named: steps that learn from data always land after the split, in a fixed order (fill, outliers, new features, encode, scale, select). A step added for more columns joins an existing step of the same kind and settings instead of creating a second one.
+When a patch changes a model's algorithm, the settings that belong only to the old algorithm are dropped, otherwise the pipeline would carry settings its new model does not have. A new step goes where its kind belongs, not necessarily right after the node named: steps that learn from data always land after the split, in a fixed order (fill, outliers, new features, encode, scale, select). A step added for more columns joins an existing step of the same kind and settings instead of creating a second one.
 
 Params set by a patch are stored with `source: "suggested"`. The user sees a before/after preview before confirming, and one Undo reverts the whole patch.
 
@@ -189,7 +189,7 @@ Thresholds shown are defaults in the config file.
 
 | ID | Condition | Suggestion |
 |---|---|---|
-| M01 | model is linear, logistic, knn, svm, mlp or kmeans and there is no `scale` upstream | Warn: these models are sensitive to feature ranges. Add `scale` `standard`. |
+| M01 | model is linear, logistic, knn, svm, mlp or kmeans and there is no `scale` upstream | Warn: these models are sensitive to feature ranges. Add `scale` `standard`. Shown on the Model screen, because it depends on the model chosen there. |
 | M02 | model is tree-based and a `scale` node exists | Info: not needed for trees, harmless. |
 | M03 | linear or logistic model and `encode.method == onehot` with `dropFirst` off | Tip: set `dropFirst`. |
 | M04 | no baseline run exists yet | Suggest running `linear_regression` or `logistic_regression` first, so every later model has something to beat. |

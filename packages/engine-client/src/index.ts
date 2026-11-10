@@ -74,6 +74,58 @@ export interface LoadSettings {
   sampleRows?: number | null;
 }
 
+/** How much detail a training run reports. `full` sends everything, `off` only the basics. */
+export type VizLevel = 'off' | 'light' | 'full';
+
+/** One thing that happened during a run (see docs/design/training-events.md). */
+export interface TrainingEvent {
+  v: 1;
+  runId: string;
+  /** Counts up by one per event. A gap means a droppable event was dropped. */
+  seq: number;
+  /** Milliseconds since the run started. */
+  t: number;
+  node: string | null;
+  trial: number | null;
+  type: string;
+  /** `live` came from the real training process, `replay` was rebuilt from the fitted model. */
+  source: 'live' | 'replay';
+  data: Record<string, unknown>;
+}
+
+export type Scores = Record<string, number | null>;
+
+export interface RunError {
+  code: string;
+  message: string;
+  hint: string;
+}
+
+/** What a training run produced. */
+export interface TrainOutcome {
+  status: 'succeeded' | 'failed' | 'cancelled';
+  durationMs: number;
+  error?: RunError;
+  modelNode?: string;
+  algorithm?: string;
+  /** Per-algorithm detail from the fit: curves, early stopping, number of trees. */
+  fit?: Record<string, unknown> | null;
+  train?: Scores | null;
+  validation?: Scores | null;
+  method?: string;
+  spread?: Record<string, { mean: number | null; std: number | null }> | null;
+  folds?: Scores[] | null;
+  timings?: Record<string, number>;
+  ran?: { executed: string[]; reused: string[] };
+}
+
+export interface TrainRequest {
+  pipeline: string;
+  hashes: Record<string, string>;
+  runId: string;
+  viz: VizLevel;
+}
+
 export type EnginePhase = 'idle' | 'loading' | 'ready' | 'error';
 
 export interface EngineProgress {
@@ -97,8 +149,13 @@ export interface Engine {
    * are loaded instead of run.
    */
   runEarly(pipeline: string, hashes?: Record<string, string>): Promise<EarlyRunResult>;
-  /** Asks the running job to stop. */
-  cancel(): void;
+  /**
+   * Trains the model the pipeline ends with and validates it, streaming events as they happen.
+   * `onEvents` gets batches of events (roughly 30 times a second at most).
+   */
+  train(request: TrainRequest, onEvents: (events: TrainingEvent[]) => void): Promise<TrainOutcome>;
+  /** Asks the running job to stop. Resolves when the engine is ready for the next job. */
+  cancel(): Promise<void>;
   dispose(): void;
 }
 

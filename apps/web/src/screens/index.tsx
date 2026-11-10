@@ -4,6 +4,9 @@ import { DataScreen } from './DataScreen';
 import { ExploreScreen } from './ExploreScreen';
 import { FeaturesScreen } from './FeaturesScreen';
 import { MissingScreen } from './MissingScreen';
+import { CompareScreen } from './CompareScreen';
+import { ModelScreen } from './ModelScreen';
+import { TrainScreen } from './TrainScreen';
 import { ProjectScreen } from './ProjectScreen';
 import { SplitScreen } from './SplitScreen';
 import type { SampleInfo } from './Startup';
@@ -32,6 +35,12 @@ export function renderScreen(
       return <MissingScreen />;
     case 'features':
       return <FeaturesScreen />;
+    case 'model':
+      return <ModelScreen />;
+    case 'train':
+      return <TrainScreen />;
+    case 'compare':
+      return <CompareScreen />;
     default:
       return <p className="muted">This screen arrives in a later version.</p>;
   }

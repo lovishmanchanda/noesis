@@ -10,14 +10,37 @@ export interface ProjectFile {
   savedAt: string;
   project: Pick<
     ProjectState,
-    'name' | 'topic' | 'goal' | 'roles' | 'tidy' | 'split' | 'seed' | 'metric' | 'prepare'
+    | 'name'
+    | 'topic'
+    | 'goal'
+    | 'roles'
+    | 'tidy'
+    | 'split'
+    | 'seed'
+    | 'metric'
+    | 'prepare'
+    | 'model'
+    | 'validation'
   > & {
     dataset: { name: string; settings: NonNullable<ProjectState['dataset']>['settings'] } | null;
   };
 }
 
 export function toProjectFile(state: ProjectState, now = new Date()): ProjectFile {
-  const { name, topic, goal, roles, tidy, split, seed, dataset, metric, prepare } = state;
+  const {
+    name,
+    topic,
+    goal,
+    roles,
+    tidy,
+    split,
+    seed,
+    dataset,
+    metric,
+    prepare,
+    model,
+    validation,
+  } = state;
   return {
     noesisProject: 1,
     savedAt: now.toISOString(),
@@ -31,6 +54,8 @@ export function toProjectFile(state: ProjectState, now = new Date()): ProjectFil
       seed,
       metric,
       prepare,
+      model,
+      validation,
       dataset: dataset ? { name: dataset.name, settings: dataset.settings } : null,
     },
   };
@@ -81,6 +106,8 @@ export function projectFromFile(file: ProjectFile): {
     seed: typeof p.seed === 'number' ? p.seed : base.seed,
     metric: typeof p.metric === 'string' ? p.metric : null,
     prepare: Array.isArray(p.prepare) ? p.prepare : [],
+    model: p.model ?? null,
+    validation: p.validation ?? base.validation,
     dataset: null,
   };
   // The project screen is done when a goal was chosen; the data must be added again.

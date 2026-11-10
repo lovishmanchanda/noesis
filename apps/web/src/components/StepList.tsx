@@ -2,6 +2,7 @@ import { isActive, nodeSpec, paramSpecs, type ParamSpec } from '@noesis/registry
 import { rankOf } from '@noesis/rules';
 import { shortHash } from '@noesis/schema';
 import { removeStep, setStepParam } from '../pipeline/prepare';
+import { ParamEditor } from './ParamEditor';
 import { useProject, type PrepareStep } from '../state/project';
 import { requestRun, useRun, useStepStatuses } from '../state/run';
 import { recordEdit } from '../state/suggestions';
@@ -25,47 +26,20 @@ function Editor({
   spec: ParamSpec;
   value: unknown;
 }) {
-  const change = (next: unknown): void => {
-    recordEdit(`Change “${spec.label}” in “${nodeSpec(step.type).label}”`);
-    useProject.setState((p) => ({
-      prepare: setStepParam(p.prepare, step.id, name, next as never),
-    }));
-    void requestRun().catch(() => undefined);
-  };
-  const id = `${step.id}-${name}`;
-  if (spec.type === 'enum')
-    return (
-      <select id={id} value={String(value ?? '')} onChange={(e) => change(e.target.value)}>
-        {(spec.options ?? []).map((o) => (
-          <option key={String(o)} value={String(o)}>
-            {String(o)}
-          </option>
-        ))}
-      </select>
-    );
-  if (spec.type === 'bool')
-    return (
-      <input
-        id={id}
-        type="checkbox"
-        checked={value === true}
-        onChange={(e) => change(e.target.checked)}
-      />
-    );
-  if (spec.type === 'int' || spec.type === 'float' || spec.type === 'number')
-    return (
-      <input
-        id={id}
-        type="number"
-        value={value === null || value === undefined ? '' : Number(value)}
-        {...(spec.min !== undefined ? { min: spec.min } : {})}
-        {...(spec.max !== undefined ? { max: spec.max } : {})}
-        step={spec.type === 'int' ? 1 : 'any'}
-        onChange={(e) => e.target.value !== '' && change(Number(e.target.value))}
-        style={{ width: 90 }}
-      />
-    );
-  return <span className="mono">{valueText(value)}</span>;
+  return (
+    <ParamEditor
+      id={`${step.id}-${name}`}
+      spec={spec}
+      value={value}
+      onChange={(next) => {
+        recordEdit(`Change “${spec.label}” in “${nodeSpec(step.type).label}”`);
+        useProject.setState((p) => ({
+          prepare: setStepParam(p.prepare, step.id, name, next as never),
+        }));
+        void requestRun().catch(() => undefined);
+      }}
+    />
+  );
 }
 
 /**

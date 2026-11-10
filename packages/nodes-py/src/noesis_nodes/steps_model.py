@@ -19,9 +19,9 @@ from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC, SVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from xgboost import XGBClassifier, XGBRegressor
 
 from .context import Ctx, Data
+from .training import TRAINERS
 
 NAN_SAFE = {"decision_tree", "random_forest", "gradient_boosting"}
 CLUSTERING = {"kmeans", "dbscan", "hierarchical"}
@@ -66,6 +66,8 @@ def build_estimator(algorithm: str, p: dict[str, Any], ctx: Ctx, early_stopping:
             n_jobs=jobs, random_state=seed, **kwargs,
         )
     if algorithm == "gradient_boosting":
+        from xgboost import XGBClassifier, XGBRegressor  # loaded on demand: the browser fetches it only when needed
+
         stop = p["early_stopping_rounds"] if early_stopping else None
         return pick(XGBClassifier, XGBRegressor)(
             n_estimators=p["n_estimators"], learning_rate=p["learning_rate"], max_depth=p["max_depth"],
@@ -85,7 +87,7 @@ def build_estimator(algorithm: str, p: dict[str, Any], ctx: Ctx, early_stopping:
         return pick(MLPClassifier, MLPRegressor)(
             hidden_layer_sizes=tuple(p["hidden_layers"]), activation=p["activation"], solver=p["optimizer"],
             learning_rate_init=p["learning_rate"], batch_size=p["batch_size"], max_iter=p["epochs"], alpha=p["l2"],
-            early_stopping=p["early_stopping"], n_iter_no_change=p["patience"] or 10, random_state=seed,
+            early_stopping=p["early_stopping"], n_iter_no_change=p.get("patience") or 10, random_state=seed,
         )
     if algorithm == "kmeans":
         return KMeans(n_clusters=p["n_clusters"], init=p["init"], max_iter=p["max_iter"], n_init=p["n_init"],
@@ -160,7 +162,8 @@ def model(data: Data, p: dict[str, Any], ctx: Ctx, node_id: str) -> Data:
         raise ValueError("model: not enough numeric feature columns")
 
     estimator = build_estimator(algorithm, p, ctx)
-    ctx.emit("model_structure", {"node": node_id, "algorithm": algorithm, "features": len(columns)})
+    if algorithm not in TRAINERS:
+        ctx.emit("model_structure", {"node": node_id, "algorithm": algorithm, "features": len(columns)})
     if algorithm in CLUSTERING:
         x = train[columns]
         estimator.fit(x)
@@ -178,6 +181,20 @@ def model(data: Data, p: dict[str, Any], ctx: Ctx, node_id: str) -> Data:
         target = encoder.transform(y) if encoder is not None else y
         fit_args: dict[str, Any] = {}
         validation = data.parts["validation"]
+        if algorithm in TRAINERS:
+            vx = vt = None
+            if len(validation) > 0:
+                vx, vy = _xy(validation, columns, ctx)
+                known = vy.isin(encoder.classes_) if encoder is not None else pd.Series(True, index=vy.index)
+                vx, vt = vx[known], (encoder.transform(vy[known]) if encoder is not None else vy[known])
+            if algorithm == "gradient_boosting" and p["early_stopping_rounds"] and vx is None:
+                estimator = build_estimator(algorithm, p, ctx, early_stopping=False)
+            fit_info = TRAINERS[algorithm](estimator, x, target, vx, vt, p, ctx, node_id)
+            fitted = FittedModel(algorithm, p, estimator, columns, ctx.task, encoder)
+            result = {"train": compute_metrics(fitted, train, DEFAULT_METRICS[ctx.task], ctx), "fit": fit_info}
+            ctx.models[node_id] = fitted
+            ctx.results[node_id] = result
+            return data
         if algorithm == "gradient_boosting" and p["early_stopping_rounds"] and len(validation) > 0:
             vx, vy = _xy(validation, columns, ctx)
             known = vy.isin(encoder.classes_) if encoder is not None else pd.Series(True, index=vy.index)

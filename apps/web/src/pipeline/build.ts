@@ -96,3 +96,31 @@ export function buildEarlyPipeline(project: ProjectState): Built {
   };
   return { pipeline, issues: validatePipeline(pipeline).issues };
 }
+
+/**
+ * The early pipeline plus the chosen model and the check that scores it. This is what a training
+ * run executes. The steps before the model hash exactly as they do in the early pipeline, so
+ * the prepared data is reused from the cache.
+ */
+export function buildTrainingPipeline(project: ProjectState): Built {
+  const { pipeline } = buildEarlyPipeline(project);
+  const model = project.model;
+  if (model) {
+    const last = pipeline.nodes[pipeline.nodes.length - 1] as PipelineNode;
+    const modelId = 'm1';
+    pipeline.nodes.push({
+      id: modelId,
+      type: 'model',
+      inputs: [last.id],
+      params: { algorithm: user(model.algorithm), ...model.params },
+    });
+    const { method, k } = project.validation;
+    pipeline.nodes.push({
+      id: 'v1',
+      type: 'validate',
+      inputs: [modelId],
+      params: { method: user(method), ...(method === 'holdout' ? {} : { k: user(k) }) },
+    });
+  }
+  return { pipeline, issues: validatePipeline(pipeline).issues };
+}

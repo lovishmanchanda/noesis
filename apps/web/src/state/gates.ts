@@ -1,10 +1,15 @@
 import { targetProblem } from '../pipeline/guess';
+import type { RunRecord } from '../runs/records';
 import { names, notReady, unfilled } from '../screens/shared';
 import type { ScreenId } from '../screens';
 import type { ProjectState } from './project';
 
 /** Why the user cannot move on from a screen yet, or undefined when they can. */
-export function blockedReason(screen: ScreenId, p: ProjectState): string | undefined {
+export function blockedReason(
+  screen: ScreenId,
+  p: ProjectState,
+  runs: readonly RunRecord[] = [],
+): string | undefined {
   switch (screen) {
     case 'project':
       if (!p.name.trim()) return 'Give the project a name.';
@@ -61,6 +66,19 @@ export function blockedReason(screen: ScreenId, p: ProjectState): string | undef
         return `${names(empty)} still ${empty.length === 1 ? 'has' : 'have'} empty cells.`;
       return undefined;
     }
+    case 'model':
+      if (p.goal === 'groups') return 'Grouping rows arrives in a later version.';
+      if (!p.model) return 'Choose a model.';
+      return undefined;
+    case 'train':
+      return runs.some((r) => r.status === 'succeeded')
+        ? undefined
+        : 'Train at least one model first.';
+    case 'compare':
+      if (!p.candidate) return 'Choose the run you want to test.';
+      return runs.some((r) => r.runId === p.candidate && r.status === 'succeeded')
+        ? undefined
+        : 'The chosen run is no longer available. Choose another.';
     default:
       return undefined;
   }

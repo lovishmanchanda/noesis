@@ -1,7 +1,6 @@
 import { datasetKey, nodeHashes, nodeStatuses, type NodeStatus } from '@noesis/schema';
-import { useEffect, useState } from 'react';
 import { create } from 'zustand';
-import { buildEarlyPipeline } from '../pipeline/build';
+import { buildEarlyPipeline, buildTrainingPipeline } from '../pipeline/build';
 import { getEngine } from './engine';
 import { useProject } from './project';
 
@@ -74,25 +73,32 @@ export function requestRun(): Promise<void> {
   return inFlight;
 }
 
+/** The hash of every step as the pipeline stands now. One subscriber keeps it up to date. */
+export const useCurrentHashes = create<{ hashes: Record<string, string> }>(() => ({ hashes: {} }));
+
+let hashing = 0;
+/** Recomputes the current hashes whenever the project changes. Returns a function that stops it. */
+export function startHashing(): () => void {
+  const update = (): void => {
+    const project = useProject.getState();
+    if (!project.dataset || !project.goal) return useCurrentHashes.setState({ hashes: {} });
+    const ticket = ++hashing;
+    const { pipeline } = buildTrainingPipeline(project);
+    void getDataKey()
+      .then((k) => nodeHashes(pipeline, k))
+      .then((h) => ticket === hashing && useCurrentHashes.setState({ hashes: h }))
+      .catch(() => ticket === hashing && useCurrentHashes.setState({ hashes: {} }));
+  };
+  update();
+  return useProject.subscribe(update);
+}
+
 /** Status of every step: done, outdated (it changed since it last ran) or todo. */
 export function useStepStatuses(): {
   current: Record<string, string>;
   status: Record<string, NodeStatus>;
 } {
-  const project = useProject();
+  const current = useCurrentHashes((s) => s.hashes);
   const last = useRun((s) => s.hashes);
-  const [current, setCurrent] = useState<Record<string, string>>({});
-  useEffect(() => {
-    if (!project.dataset || !project.goal) return;
-    let live = true;
-    const { pipeline } = buildEarlyPipeline(project);
-    void getDataKey()
-      .then((k) => nodeHashes(pipeline, k))
-      .then((h) => live && setCurrent(h))
-      .catch(() => live && setCurrent({}));
-    return () => {
-      live = false;
-    };
-  }, [project]);
   return { current, status: nodeStatuses(current, last) };
 }

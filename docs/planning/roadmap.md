@@ -1,6 +1,6 @@
 # NOESIS: roadmap and improvements (draft 0.1)
 
-Companion to [tech-stack.md](../architecture/tech-stack.md). The design docs describe a lot. This file says what to build first, in what order, and what would make the product better than a notebook replacement.
+Companion to [tech-stack.md](../architecture/tech-stack.md) and [backlog.md](backlog.md), which lists every known limit, untested area and future item. The design docs describe a lot. This file says what to build first, in what order, and what would make the product better than a notebook replacement.
 
 ## Biggest risk to manage: scope
 
@@ -44,9 +44,9 @@ Chosen because each is common, easy to explain, and cheap to get right: D01, D03
 | 1. Data in | engine worker, loading screen, CSV import, profiling, screens 1 to 5 (Project, Data, Target, Tidy, Split), project save | a user can load a file and split it |
 | 2. Prepare | rule engine core, screens 6 to 8 (Explore, Missing values, Features), suggestions with preview and undo | cleaning and features work, suggestions apply cleanly |
 | 3. Train | screens 9 to 11 (Model, Train, Compare), event stream, live visuals for the MVP algorithms, cancel flag | live training with working cancel |
-| 4. Finish | screens 12 to 14 (Explain, Final test, Export), batch prediction, model card | complete flow end to end |
-| 5. Harden | accessibility, cross-browser, error states, performance budget, first-run experience, docs and help | beta-ready |
-| 6. Beta | real users and datasets, tune rule thresholds, fix what hurts | v1 release |
+| 4. Finish | screens 12 to 14 (Explain, Final test, Export), batch prediction, model card, notebook export; also from the backlog: persisting the result cache (B04), rules R10 and R11 (B10), the reproduce check (B25), the data quality summary (B34) | complete flow end to end |
+| 5. Harden | accessibility, cross-browser, error states, performance budget, first-run experience, docs and help; also from the backlog: the Windows start-up time (B01), Stop without isolation (B02), loading stages (B03), storage meter and multi-tab safety (B05), calibrating the memory guard on big files (B06), rows flowing through the pipeline strip (B09), interface polish (B13), Firefox, Safari and normal-window Windows runs (B20 to B22), end-to-end tests (B23) | beta-ready |
+| 6. Beta | real users and datasets, tune rule thresholds, fix what hurts; also from the backlog: the rule audit on public datasets (B24), deciding which unbuilt rules to add (B10), the decision log (B35) | v1 release |
 
 No dates are given because the team size and hours are not known yet.
 
@@ -57,11 +57,14 @@ No dates are given because the team size and hours are not known yet.
 | 0. Foundations | Done. Registry, validator, Python steps and the contract test are merged. |
 | 1. Data in | Done. The web app shell, the Python engine in a worker with a loading screen, the startup, project, data, target, tidy and split screens, autosave with Continue, and a project file. Verified in the browser by running a sample from start to split, closing the page and continuing. |
 | 2. Prepare | Done. The rule engine (22 rules, each with fires, does-not-fire and boundary fixtures, an idempotence test and a validity test), step hashing with an outdated marker, a Feather-with-lz4 result cache in the engine, the suggestions panel with preview, Undo and dismissal, and the Explore, Missing values and Features screens. Verified in the browser from a sample through all three screens, including a reload. |
-| 3. Train | Next. |
+| 3. Train | Done. Live training for the six MVP models (neural network, random forest, XGBoost, linear, ridge and logistic regression) with a numbered event stream, Slow and Step pacing, run records with replay, a leaderboard ranked by validation only, run comparison, the Model, Train and Compare screens, the memory guard, and rules M09, M10 and R05 to R07. Verified in the browser: each algorithm trains and draws, Stop ends a neural-network run in 57 ms, a 6-second run kept the main thread free of tasks over 50 ms, and a stored run replays. |
+| 4. Finish | Next. |
 
 Notes from Phase 1 that change the plan slightly: the profile of the training rows is computed in Python at the split and returned with the part sizes (needed by every later rule); the early steps can be rebuilt from the saved choices, so a saved project only stores the choices and the CSV bytes, not intermediate data; Playwright end-to-end tests are postponed because they download browsers outside the repository folder, so Phase 1 was checked in the built-in browser and by unit tests.
 
 Notes from Phase 2 that change the plan slightly: the rules read two profiles, the file as loaded (for facts about the file) and the training rows right after the split (for every choice made from statistics), and the engine returns a third, the training rows as they leave the last step, so the screens can show what a model would receive. The result cache lives in the engine's memory for now; keeping it in the browser's storage across visits waits for Phase 3, where model files need the same storage budget. The Python side loads scikit-learn and pyarrow the first time a pipeline needs them (about 4 s on the Mac), not at start-up. Suggestions add a fifth patch operation, `setMetric`, because T04 needs to change the metric. Rules C10, C11 and C13 and the Expert-mode switch for exploring all rows are not built yet; they are outside the first set of rules.
+
+Notes from Phase 3 that change the plan slightly: the other algorithms in the registry (trees, KNN, SVM, naive Bayes, the clustering methods) still train, but without a live view; only the six in the MVP list are in the Model screen. Tuning sweeps and replay stay in the after-v1 list, as planned. The result cache and run records are kept in the browser's storage (one record per run, events in a separate key, 50 runs plus kept ones); the stored event log is capped at 1 MB per run instead of 5 MB. Without cross-origin isolation, Stop has to restart the Python engine, which takes several seconds and reopens the file. XGBoost is now fetched only when a boosting model is trained, which keeps the first load smaller.
 
 **Clean-up after every phase.** When a phase is merged, run `pnpm clean` and then `pnpm clean:yes` (see [CONTRIBUTING.md](../../CONTRIBUTING.md)), so generated data, caches, logs, archives and scratch files never pile up, and check that nothing was written outside the repository folder.
 

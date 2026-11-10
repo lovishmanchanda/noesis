@@ -41,6 +41,14 @@ const EVIDENCE: Record<string, (v: number | string | boolean | null) => string |
   trend: (v) => (typeof v === 'number' ? `trend ${v.toFixed(2)}` : null),
   skew: (v) => (typeof v === 'number' ? `skew ${v.toFixed(2)}` : null),
   minRows: () => null,
+  train: (v) => (typeof v === 'number' ? `learned-rows score ${v.toFixed(3)}` : null),
+  validation: (v) => (typeof v === 'number' ? `new-rows score ${v.toFixed(3)}` : null),
+  gap: (v) => (typeof v === 'number' ? `gap ${Math.round(v * 100)}%` : null),
+  score: (v) => (typeof v === 'number' ? `score ${v.toFixed(3)}` : null),
+  baseline: (v) => (typeof v === 'number' ? `simple model ${v.toFixed(3)}` : null),
+  bestLoss: (v) => (typeof v === 'number' ? `best loss ${v.toFixed(3)}` : null),
+  lastLoss: (v) => (typeof v === 'number' ? `last loss ${v.toFixed(3)}` : null),
+  estimatedSeconds: (v) => (typeof v === 'number' ? `about ${v} s` : null),
 };
 
 function evidenceLines(s: Suggestion): string[] {

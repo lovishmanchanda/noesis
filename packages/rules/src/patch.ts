@@ -1,4 +1,4 @@
-import { NODE_INFO, nodeSpec } from '@noesis/registry';
+import { NODE_INFO, nodeSpec, paramSpecs } from '@noesis/registry';
 import type { NOESISPipeline, PipelineNode } from '@noesis/schema';
 import type { PatchOp } from './types';
 
@@ -137,6 +137,12 @@ export function applyPatch(pipeline: NOESISPipeline, patch: PatchOp[]): NOESISPi
         const node = p.nodes.find((n) => n.id === op.node);
         if (!node) throw new Error(`There is no step "${op.node}" to change`);
         node.params[op.param] = { value: op.value, source: 'suggested' };
+        if (node.type === 'model' && op.param === 'algorithm') {
+          // Settings of the old algorithm mean nothing to the new one.
+          const keep = new Set(Object.keys(paramSpecs('model', op.value, p.task.type)));
+          for (const name of Object.keys(node.params))
+            if (!keep.has(name)) delete node.params[name];
+        }
         break;
       }
       case 'setColumnRole': {
